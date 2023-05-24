@@ -25,8 +25,8 @@ def create_hdf5_dataset(
     dataset_name,
     scalar_map,
     compression,
-    dtype,
-    force_label_map_dtype,
+    scalar_map_dtype,
+    label_map_dtype,
 ):
 
     df = read_learn_subject_data(subj_split_fname)
@@ -49,19 +49,34 @@ def create_hdf5_dataset(
         group = subj_group.create_group(hdf5_dataset_keys.TRAIN_GROUP)
         sub_id = get_subject_list(df, LearningSplit.TRAIN.value)
         write_learning_split(
-            group, sub_id, in_dirname, scalar_map, dtype, force_label_map_dtype
+            group,
+            sub_id,
+            in_dirname,
+            scalar_map,
+            scalar_map_dtype,
+            label_map_dtype,
         )
 
         group = subj_group.create_group(hdf5_dataset_keys.VALID_GROUP)
         sub_id = get_subject_list(df, LearningSplit.VALID.value)
         write_learning_split(
-            group, sub_id, in_dirname, scalar_map, dtype, force_label_map_dtype
+            group,
+            sub_id,
+            in_dirname,
+            scalar_map,
+            scalar_map_dtype,
+            label_map_dtype,
         )
 
         group = subj_group.create_group(hdf5_dataset_keys.TEST_GROUP)
         sub_id = get_subject_list(df, LearningSplit.TEST.value)
         write_learning_split(
-            group, sub_id, in_dirname, scalar_map, dtype, force_label_map_dtype
+            group,
+            sub_id,
+            in_dirname,
+            scalar_map,
+            scalar_map_dtype,
+            label_map_dtype,
         )
 
 
@@ -75,7 +90,7 @@ def get_subject_list(df, split):
 
 
 def write_learning_split(
-    group, sub_id, in_dirname, scalar_map, dtype, force_label_map_dtype
+    group, sub_id, in_dirname, scalar_map, scalar_map_dtype, label_map_dtype
 ):
 
     # Loop over subjects
@@ -88,24 +103,22 @@ def write_learning_split(
             subject_group,
             sub_dirname,
             scalar_map,
-            dtype,
-            force_label_map_dtype,
+            scalar_map_dtype,
+            label_map_dtype,
         )
 
 
 def write_subject_data(
-    group, in_dirname, scalar_map, dtype, force_label_map_dtype
+    group, in_dirname, scalar_map, scalar_map_dtype, label_map_dtype
 ):
 
     diffusion_group = group.create_group(hdf5_dataset_keys.DIFFUSION_GROUP)
     write_diffusion_scalar_map_data(
-        diffusion_group, in_dirname, scalar_map, dtype
+        diffusion_group, in_dirname, scalar_map, scalar_map_dtype
     )
 
     structural_group = group.create_group(hdf5_dataset_keys.STRUCTURAL_GROUP)
-    write_segmentation_data(
-        structural_group, in_dirname, force_label_map_dtype
-    )
+    write_segmentation_data(structural_group, in_dirname, label_map_dtype)
 
 
 def write_diffusion_scalar_map_data(group, in_dirname, scalar_map, dtype):
@@ -132,15 +145,13 @@ def get_scalar_map_hdf5_key(scalar_map):
         raise ValueError(f"Unknown scalar map: {scalar_map}.")
 
 
-def write_segmentation_data(group, in_dirname, force_label_map_dtype):
+def write_segmentation_data(group, in_dirname, label_map_dtype):
 
     label_map_group = group.create_group(hdf5_dataset_keys.LABEL_MAP_GROUP)
 
     label = "wmparc_brain_mask"
     fname = retrieve_filename(in_dirname, label)
-    data = read_image_data_as_label_map(
-        fname, force_convert=force_label_map_dtype
-    )
+    data = read_image_data_as_label_map(fname, dtype=label_map_dtype)
 
     name = hdf5_dataset_keys.SEGMENTATION_DATA
     label_map_group.create_dataset(name, data=data)

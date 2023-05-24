@@ -239,25 +239,16 @@ def read_image_data(fname):
 
 
 # ToDo
-# Borrowed from scilpy
-def read_image_data_as_label_map(fname, force_convert=False):
+# Adapted from scilpy
+def read_image_data_as_label_map(fname, dtype=np.uint16):
 
-    img = nib.load(fname)
-    curr_type = img.get_data_dtype()
+    allowed_label_types = [np.signedinteger, np.unsignedinteger]
 
-    dtype = np.uint16
-
-    if np.issubdtype(curr_type, np.signedinteger) or np.issubdtype(
-        curr_type, np.unsignedinteger
-    ):
+    if any(map(lambda x: np.issubdtype(dtype, x), allowed_label_types)):
+        img = nib.load(fname)
         return np.asanyarray(img.dataobj).astype(dtype)
     else:
-        if force_convert:
-            return np.asanyarray(img.dataobj).astype(dtype)
-        else:
-            basename = os.path.basename(img.get_filename())
-            raise IOError(
-                f"The image {basename} cannot be loaded as label because "
-                f"its format {curr_type} is not compatible with a label "
-                "image."
-            )
+        raise ValueError(
+            f"The requested datatype {dtype} is not compatible with a label "
+            f"image type. Allowed types are: {allowed_label_types}."
+        )

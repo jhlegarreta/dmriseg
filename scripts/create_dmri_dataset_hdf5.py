@@ -6,6 +6,7 @@
 import argparse
 from pathlib import Path
 
+import numpy as np
 import yaml
 
 from dmriseg.config.parsing_utils import parse_dataset_creation_config_file
@@ -59,8 +60,12 @@ def main():
     # being there:
     # https://github.com/h5py/h5py/issues/1551
     # https://forum.hdfgroup.org/t/hdfview-3-1-0-error-displaying-dataset-with-np-float16-data/7974
-    dtype = None
-    force_label_map_dtype = True
+    scalar_map_dtype = None
+    # np.uint16 is not supported by torch:
+    # return collate([torch.as_tensor(b) for b in batch], collate_fn_map=collate_fn_map)
+    # TypeError: can't convert np.ndarray of type numpy.uint16.
+    # The only supported types are: float64, float32, float16, complex64, complex128, int64, int32, int16, int8, uint8, and bool.
+    label_map_dtype = np.uint8
 
     # Create dataset
     create_hdf5_dataset(
@@ -71,8 +76,8 @@ def main():
         dataset_name,
         scalar_map,
         compression,
-        dtype,
-        force_label_map_dtype,
+        scalar_map_dtype,
+        label_map_dtype,
     )
 
 
