@@ -27,6 +27,7 @@ dependencies = [
     "Pillow",
     "SUITPy",
     "torch",
+    "tqdm",
 ]
 description = "Cerebellum segmentation"
 keywords = ["DL, DWI, ML, neuroimaging, segmentation"]
