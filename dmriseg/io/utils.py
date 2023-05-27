@@ -202,9 +202,7 @@ def nrrd2nifti(img_data, header):
     hdr_nifti["sform_code"] = 2
 
     hdr_nifti["descrip"] = "NRRD-->NIFTI transform by Tashrif Billah"
-    img_nifti = nib.nifti1.Nifti1Image(
-        img_data, affine=xfrm_nifti, header=hdr_nifti
-    )
+
     return img_nifti
 
 
