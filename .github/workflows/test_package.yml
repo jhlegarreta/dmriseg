@@ -54,7 +54,7 @@ jobs:
       run: |
         # tox --sitepackages
         python -c 'import dmriseg'
-        # coverage run --source dmriseg -m pytest dmriseg -o junit_family=xunit2 -v --doctest-modules --durations=10 --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
+        coverage run --source dmriseg -m pytest dmriseg -o junit_family=xunit2 -v --doctest-modules --durations=10 --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}.xml
 
     - name: Upload pytest test results
       uses: actions/upload-artifact@master
@@ -64,10 +64,10 @@ jobs:
       # Use always() to always run this step to publish test results when there are test failures
       if: always()
 
-    # - name: Statistics
-    #  if: success()
-    #  run: |
-    #     coverage report
+    - name: Statistics
+      if: success()
+      run: |
+         coverage report
 
     - name: Package Setup
     # - name: Run tests with tox

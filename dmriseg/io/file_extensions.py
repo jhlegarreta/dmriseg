@@ -6,6 +6,10 @@ fname_sep = "."
 asterisk = "*"
 
 
+class TextFileExtension(enum.Enum):
+    TXT = "txt"
+
+
 class LutFileExtension(enum.Enum):
     LUT = "lut"
 

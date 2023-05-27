@@ -22,6 +22,7 @@ dependencies = [
     "matplotlib",
     "nibabel",
     "numpy",
+    "pandas",
     "pynrrd",
     "pyyaml",
     "Pillow",
