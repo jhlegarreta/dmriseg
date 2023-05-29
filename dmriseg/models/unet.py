@@ -12,4 +12,4 @@ class UNet(nn.Module):
         self._features = init_features
 
     def forward(self, x):
-        pass
+        return self._features * x
