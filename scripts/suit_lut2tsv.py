@@ -10,6 +10,7 @@ from dmriseg.data.lut.utils import (
     Atlas,
     SuitAtlasBucknerVersion,
     SuitAtlasXueVersion,
+    add_additional_label_to_lut,
     add_alpha_to_lut,
     build_atlas_version_kwargs,
     fetch_atlas_cmap_lut_file,
@@ -17,6 +18,7 @@ from dmriseg.data.lut.utils import (
     read_lut_data,
     rescale_lut,
 )
+from dmriseg.utils.parsing_utils import rgb_color, verify_background_label_data
 
 
 def _build_arg_parser():
@@ -41,6 +43,27 @@ def _build_arg_parser():
         "--xue_version",
         help="SUIT atlas Buckner version.",
         type=SuitAtlasXueVersion,
+    )
+    parser.add_argument(
+        "--background_label",
+        help="Background label.",
+        nargs="+",
+        type=int,
+        default=[],
+    )
+    parser.add_argument(
+        "--background_name",
+        help="Background name.",
+        nargs="+",
+        type=str,
+        default=[],
+    )
+    parser.add_argument(
+        "--background_color",
+        help="Background color.",
+        nargs="+",
+        type=rgb_color,
+        default=[],
     )
 
     return parser
@@ -68,13 +91,33 @@ def _parse_args(parser):
                 f"Version must be provided for atlas: f{args.atlas}. Options: {SuitAtlasXueVersion}"
             )
 
-    return args.atlas, args.out_tsv, args.rescale, args.alpha, kwargs
+    verify_background_label_data(parser, args)
+
+    return (
+        args.atlas,
+        args.out_tsv,
+        args.rescale,
+        args.alpha,
+        args.background_label,
+        args.background_name,
+        args.background_color,
+        kwargs,
+    )
 
 
 def main():
 
     parser = _build_arg_parser()
-    atlas, out_tsv, rescale, alpha, kwargs = _parse_args(parser)
+    (
+        atlas,
+        out_tsv,
+        rescale,
+        alpha,
+        background_label,
+        background_name,
+        background_color,
+        kwargs,
+    ) = _parse_args(parser)
 
     fname = fetch_atlas_cmap_lut_file(atlas, **kwargs)
 
@@ -82,6 +125,11 @@ def main():
 
     if rescale:
         lut = rescale_lut(lut)
+
+    if background_label is not None:
+        lut = add_additional_label_to_lut(
+            lut, background_label, background_name, background_color
+        )
 
     if alpha is not None:
         lut = add_alpha_to_lut(lut, alpha)

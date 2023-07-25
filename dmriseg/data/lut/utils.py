@@ -436,6 +436,20 @@ def rescale_lut(lut):
     return dict(zip(lut.keys(), _vals))
 
 
+def add_additional_label_to_lut(lut, label, name, color):
+    inters_label = list(set(label).intersection(set(lut.keys())))
+
+    if inters_label:
+        raise ValueError(f"Labels exist in current LUT: {inters_label}")
+    else:
+        [
+            lut.update(dict({_label: (_name, _color)}))
+            for _label, _name, _color in zip(label, name, color)
+        ]
+
+    return dict(sorted(lut.items()))
+
+
 def add_alpha_to_lut(lut, alpha):
     _vals = list(
         zip(
