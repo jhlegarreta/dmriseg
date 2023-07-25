@@ -2,6 +2,13 @@
 
 import argparse
 
+from dmriseg.data.lut.utils import (
+    Atlas,
+    SuitAtlasBucknerVersion,
+    SuitAtlasXueVersion,
+    build_atlas_version_kwargs,
+)
+
 
 def rgb_color(sequence):
     try:
@@ -9,6 +16,29 @@ def rgb_color(sequence):
         return r, g, b
     except TypeError:
         raise argparse.ArgumentTypeError("RGB color must be R,G,B")
+
+
+def parse_atlas_version_kwargs(parser, args):
+
+    kwargs = dict({})
+    if args.atlas == Atlas.BUCKNER:
+        if args.buckner_version:
+            kwargs = build_atlas_version_kwargs(
+                args.atlas, args.buckner_version
+            )
+        else:
+            parser.error(
+                f"Version must be provided for atlas: f{args.atlas}. Options: {SuitAtlasBucknerVersion}"
+            )
+    elif args.atlas == Atlas.XUE:
+        if args.xue_version:
+            kwargs = build_atlas_version_kwargs(args.atlas, args.xue_version)
+        else:
+            parser.error(
+                f"Version must be provided for atlas: f{args.atlas}. Options: {SuitAtlasXueVersion}"
+            )
+
+    return kwargs
 
 
 def verify_background_label_data(parser, args):

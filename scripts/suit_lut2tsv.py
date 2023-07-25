@@ -12,13 +12,16 @@ from dmriseg.data.lut.utils import (
     SuitAtlasXueVersion,
     add_additional_label_to_lut,
     add_alpha_to_lut,
-    build_atlas_version_kwargs,
     fetch_atlas_cmap_lut_file,
     lut2df,
     read_lut_data,
     rescale_lut,
 )
-from dmriseg.utils.parsing_utils import rgb_color, verify_background_label_data
+from dmriseg.utils.parsing_utils import (
+    parse_atlas_version_kwargs,
+    rgb_color,
+    verify_background_label_data,
+)
 
 
 def _build_arg_parser():
@@ -73,24 +76,7 @@ def _parse_args(parser):
 
     args = parser.parse_args()
 
-    kwargs = dict({})
-    if args.atlas == Atlas.BUCKNER:
-        if args.buckner_version:
-            kwargs = build_atlas_version_kwargs(
-                args.atlas, args.buckner_version
-            )
-        else:
-            raise ValueError(
-                f"Version must be provided for atlas: f{args.atlas}. Options: {SuitAtlasBucknerVersion}"
-            )
-    elif args.atlas == Atlas.XUE:
-        if args.xue_version:
-            kwargs = build_atlas_version_kwargs(args.atlas, args.xue_version)
-        else:
-            raise ValueError(
-                f"Version must be provided for atlas: f{args.atlas}. Options: {SuitAtlasXueVersion}"
-            )
-
+    kwargs = parse_atlas_version_kwargs(parser, args)
     verify_background_label_data(parser, args)
 
     return (
