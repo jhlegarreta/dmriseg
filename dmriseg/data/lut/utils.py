@@ -87,6 +87,16 @@ suit_file_fetch_arg = "suit_file_fetch"
 lut_extension_arg = "lut_extension"
 
 
+def apply_fastsurfer_cmap(img_data):
+
+    from skimage import color
+
+    # ToDo
+    # If not all labels are present in the img_data, it may happen that for the
+    # next call, colors start where the cycle stopped for the previous call
+    return color.label2rgb(img_data, bg_label=0)
+
+
 def get_atlas_from_cmap_name(cmap_name):
 
     atlas_val, version_val = ColormapName(cmap_name).name.split(
@@ -391,7 +401,8 @@ def fetch_atlas_cmap_lut_file(atlas, **kwargs):
         )
     else:
         raise NotImplementedError(
-            f"Unsupported atlas:\nFound: {atlas}; {list(Atlas.__members__)}"
+            f"Unsupported atlas:\nFound: {atlas}\n"
+            f"Available: {list(Atlas.__members__)}"
         )
 
     return atlas_cmap_lut_file
@@ -475,3 +486,48 @@ def lut2df(lut):
     df.index.name = "ID"
 
     return df
+
+
+def map_diedrichsen2cerebnet():
+    diedrichsen2cerebnet_map = dict(
+        {
+            "Unknown": "Unknown",
+            "Left_I_IV": "Left_I_IV",
+            "Right_I_IV": "Right_I_IV",
+            "Left_V": "Left_V",
+            "Right_V": "Right_V",
+            "Left_VI": "Left_VI",
+            "Vermis_VI": "Vermis_VI",
+            "Right_VI": "Right_VI",
+            "Left_CrusI": "Left_CrusI",
+            "Vermis_CrusI": "Vermis_VII",  # Deduced reading Diedrichsen 2009
+            "Right_CrusI": "Right_CrusI",
+            "Left_CrusII": "Left_CrusII",
+            "Vermis_CrusII": "Vermis_VII",  # Deduced reading Diedrichsen 2009
+            "Right_CrusII": "Right_CrusII",
+            "Left_VIIb": "Left_VIIb",
+            "Vermis_VIIb": "Vermis_VII",
+            "Right_VIIb": "Right_VIIb",
+            "Left_VIIIa": "Left_VIIIa",
+            "Vermis_VIIIa": "Vermis_VIII",
+            "Right_VIIIa": "Right_VIIIa",
+            "Left_VIIIb": "Left_VIIIb",
+            "Vermis_VIIIb": "Vermis_VIII",
+            "Right_VIIIb": "Right_VIIIb",
+            "Left_IX": "Left_IX",
+            "Vermis_IX": "Vermis_IX",
+            "Right_IX": "Right_IX",
+            "Left_X": "Left_X",
+            "Vermis_X": "Vermis_X",
+            "Right_X": "Right_X",
+            "Left_Dentate": "Left_Corpus_Medullare",
+            "Right_Dentate": "Right_Corpus_Medullare",
+            "Left_Interposed": "Left_Corpus_Medullare",
+            "Right_Interposed": "Right_Corpus_Medullare",
+            "Left_Fastigial": "Left_Corpus_Medullare",
+            "Right_Fastigial": "Right_Corpus_Medullare",
+        }
+    )
+
+    assert len(diedrichsen2cerebnet_map.keys()) == 34 + 1
+    assert len(set(diedrichsen2cerebnet_map.values())) == 28
