@@ -24,7 +24,9 @@ class NiftiFileExtension(enum.Enum):
 
 
 class NrrdFileExtension(enum.Enum):
+    NHDR = "nhdr"
     NRRD = "nrrd"
+    RAW = "raw"
 
 
 class CompressedFileExtension(enum.Enum):
