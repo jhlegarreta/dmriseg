@@ -401,7 +401,8 @@ def fetch_atlas_cmap_lut_file(atlas, **kwargs):
         )
     else:
         raise NotImplementedError(
-            f"Unsupported atlas:\nFound: {atlas}; {list(Atlas.__members__)}"
+            f"Unsupported atlas:\nFound: {atlas}\n"
+            f"Available: {list(Atlas.__members__)}"
         )
 
     return atlas_cmap_lut_file
