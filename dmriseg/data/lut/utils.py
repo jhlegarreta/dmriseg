@@ -87,6 +87,16 @@ suit_file_fetch_arg = "suit_file_fetch"
 lut_extension_arg = "lut_extension"
 
 
+def apply_fastsurfer_cmap(img_data):
+
+    from skimage import color
+
+    # ToDo
+    # If not all labels are present in the img_data, it may happen that for the
+    # next call, colors start where the cycle stopped for the previous call
+    return color.label2rgb(img_data, bg_label=0)
+
+
 def get_atlas_from_cmap_name(cmap_name):
 
     atlas_val, version_val = ColormapName(cmap_name).name.split(
