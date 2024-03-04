@@ -26,6 +26,7 @@ dependencies = [
     "pynrrd",
     "pyyaml",
     "Pillow",
+    "seg-metrics",
     "SUITPy",
     "torch",
     "tqdm",
