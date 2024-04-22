@@ -495,8 +495,14 @@ def main():
                 fig.savefig(os.path.join(dout, "outputs.png"))
                 plt.close(fig)
 
+                title = f"EPOCH={epoch}"
+                grid = True
                 _fig = boxplot_channel_metric(
-                    metric_c.cpu().numpy(), "Dice", classnames, epoch
+                    metric_c.cpu().numpy(),
+                    "Dice",
+                    classnames,
+                    title=title,
+                    grid=grid,
                 )
                 _fig.savefig(os.path.join(dout, "dice_channel_boxplot.png"))
                 plt.close(_fig)

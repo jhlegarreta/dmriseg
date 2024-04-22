@@ -70,7 +70,7 @@ def compute_distance(img1, img2, sampling=1, connectivity=1):
     # MRI scan and the 1 indicated I'd like a 6 neighbour (cross-shaped) kernel
     # for finding the edges.
     #  surface_distance = surfd(test_seg, GT_seg, [1.25, 1.25, 10],1)
-    # By specifcing the value of the voxel-label I'm interested in (assuming
+    # By specifying the value of the voxel-label I'm interested in (assuming
     # we're talking about classes which are contiguous and not spread out),
     # we can find the surface accuracy of that class.
     #  surface_distance = compute_surface_distance_old(test_seg(test_seg==1), GT_seg(GT_seg==1), [1.25, 1.25, 10],1)
