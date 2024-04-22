@@ -632,6 +632,17 @@ def get_sw_prediction(image, model, patch_size, overlap, blend_mode, tta):
     return prediction
 
 
+def rescale_int_colors(colors):
+    """Rescale RGB color values in the [0-255] range to the [0-1] range."""
+
+    colors_rescaled = []
+    for rgb in colors:
+        rgb = map(lambda x: x / 255, rgb)
+        colors_rescaled.append(tuple(rgb))
+
+    return colors_rescaled
+
+
 def boxplot_channel_metric(
     metric_values, metric_name, class_names, cmap=None, title=None, grid=False
 ):

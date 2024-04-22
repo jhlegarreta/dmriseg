@@ -30,6 +30,7 @@ dependencies = [
     "pyyaml",
     "Pillow",
     "scikit-image",
+    "seaborn",
     "seg-metrics",
     "SUITPy",
     "torch",
