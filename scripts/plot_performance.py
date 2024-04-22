@@ -15,7 +15,8 @@ from dmriseg.data.lut.utils import (
     g_label,
     r_label,
 )
-from dmriseg.dataset.utils import boxplot_channel_metric, rescale_int_colors
+from dmriseg.visualization.color_utils import rescale_int_colors
+from dmriseg.visualization.plot_utils import boxplot_channel_metric
 
 
 def _build_arg_parser():

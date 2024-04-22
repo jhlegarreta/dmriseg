@@ -41,11 +41,13 @@ from torch.utils.tensorboard import SummaryWriter
 from dmriseg.dataset.utils import (
     extract_slice,
     get_datasets,
-    get_label_cmap,
     get_model,
     get_timestamp,
     get_transforms,
     inference,
+)
+from dmriseg.visualization.plot_utils import (
+    get_label_cmap,
     plot_loss_and_metric,
 )
 
