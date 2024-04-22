@@ -1,12 +1,27 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import enum
 
 import nibabel as nib
 import numpy as np
 import seg_metrics.seg_metrics as sg
 from scipy import ndimage
 from scipy.spatial.distance import cdist
+
+
+class Measure(enum.Enum):
+    CENTER_OF_MASS_DISTANCE = "cm_dist"
+    DICE = "dice"
+    HAUSDORFF = "hd"
+    HAUSDORFF95 = "hd95"
+    HAUSDORFF99 = "hd99"
+    JACCARD = "jaccard"
+    MEAN_SURFACE_DISTANCE = "msd"
+    GT_VOLUME = "pred_volume"
+    PRED_VOLUME = "pred_volume"
+    VOLUME_ERROR = "vol_err"
+    VOLUME_SIMILARITY = "vs"
 
 
 # ToDo
@@ -49,20 +64,21 @@ def compute_surface_distance_old(input1, input2, sampling=1, connectivity=1):
 
 
 def compute_distance(img1, img2, sampling=1, connectivity=1):
+    # Taken from https://mlnotebook.github.io/post/surface-distance-function/
     # The function example below takes two segmentations (which both have
     # multiple classes). The sampling vector is a typical pixel-size from an
-    # MRI scan and the 1 indicated I’d like a 6 neighbour (cross-shaped) kernel
+    # MRI scan and the 1 indicated I'd like a 6 neighbour (cross-shaped) kernel
     # for finding the edges.
     #  surface_distance = surfd(test_seg, GT_seg, [1.25, 1.25, 10],1)
-    # By specifcing the value of the voxel-label I’m interested in (assuming
-    # we’re talking about classes which are contiguous and not spread out),
+    # By specifcing the value of the voxel-label I'm interested in (assuming
+    # we're talking about classes which are contiguous and not spread out),
     # we can find the surface accuracy of that class.
-    #  surface_distance = surfd(test_seg(test_seg==1), GT_seg(GT_seg==1), [1.25, 1.25, 10],1)
+    #  surface_distance = compute_surface_distance_old(test_seg(test_seg==1), GT_seg(GT_seg==1), [1.25, 1.25, 10],1)
 
     img1_data = img1.get_fdata().astype(int)
     img2_data = img2.get_fdata().astype(int)
 
-    surface_distance = compute_surface_distance(
+    surface_distance = compute_surface_distance_old(
         img1_data, img2_data, sampling=sampling, connectivity=connectivity
     )
     msd = surface_distance.mean()
@@ -124,7 +140,7 @@ def fill_missing_values(metrics, labels, msng_idx):
     return [metrics_filled]
 
 
-def compute_surface_distance(img1, img2, labels, exclude_background=True):
+def compute_metrics(img1, img2, labels, exclude_background=True):
     """dice, jaccard, precision, recall, fpr, fnr, vs, hd, hd95, msd, mdsd,
     stdsd"""
 
@@ -195,3 +211,37 @@ def compute_center_of_mass_distance(img1, img2, labels):
     # dist = np.linalg.norm(p - q, axis=1)
     dist = cdist(p, q)
     return np.diagonal(dist), center_mass1, center_mass2
+
+
+def compute_labelmap_volume(img_data, label_list, resolution):
+
+    labelwise_data = np.asarray(
+        [np.where(img_data != value, 0, img_data) for value in label_list]
+    )
+    label_count = np.count_nonzero(
+        labelwise_data, axis=(1, 2, 3), keepdims=False
+    )
+    return np.around(label_count * np.prod(resolution), 3)
+
+
+def compute_error(gt_vol, pred_vol):
+
+    # ToDo
+    # Deal with the case where some labels may be absent in the ground truth:
+    # the division will raise an encountered invalid value in division warning
+    return (pred_vol - gt_vol) / gt_vol
+
+
+def compute_volume_error(gt_img, pred_img, label_list):
+
+    img_data = gt_img.get_fdata()
+    pred_data = pred_img.get_fdata()
+
+    img_res = gt_img.header.get_zooms()
+    pred_res = pred_img.header.get_zooms()
+    assert img_res == pred_res
+
+    gt_vol = compute_labelmap_volume(img_data, label_list, img_res)
+    pred_vol = compute_labelmap_volume(pred_data, label_list, pred_res)
+
+    return compute_error(gt_vol, pred_vol)

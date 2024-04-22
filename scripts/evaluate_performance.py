@@ -2,24 +2,22 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import enum
 from pathlib import Path
-from typing import Union
 
 import nibabel as nib
 import numpy as np
 import pandas as pd
 
 from dmriseg.analysis.measures import (
+    Measure,
     compute_center_of_mass_distance,
-    compute_surface_distance,
+    compute_metrics,
+    compute_volume_error,
 )
+from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
+from dmriseg.io.file_extensions import DelimitedValuesFileExtension
+from dmriseg.io.utils import build_suffix, participant_label_id, underscore
 
-label_id = "ID"
-particip_id = "ID"
-
-fname_sep = "."
-underscore = "_"
 cm_dist_fname_label = "cm_dist_fname_label"
 dice_fname_label = "dice"
 hausdorff_fname_label = "hausdorff"
@@ -30,73 +28,11 @@ vs_fname_label = "vs_fname_label"
 stats_fname_label = "stats"
 
 
-class Measures(enum.Enum):
-    CENTER_OF_MASS_DISTANCE = "cm_dist"
-    DICE = "dice"
-    JACCARD = "jaccard"
-    HAUSDORFF = "hausdorff"
-    HAUSDORFF95 = "hausdorff95"
-    MEAN_SURFACE_DISTANCE = "msd"
-    VOLUME_SIMILARITY = "vs"
-
-
-class DelimitedValuesFileExtension(enum.Enum):
-    CSV = "csv"
-    TSV = "tsv"
-
-
-class CompressedFileExtension(enum.Enum):
-    GZ = "gz"
-
-
-def build_suffix(
-    extension, compression: Union[None, CompressedFileExtension] = None
-):
-
-    if compression is None:
-        return fname_sep + extension.value
-    elif compression == CompressedFileExtension.GZ:
-        return (
-            fname_sep
-            + extension.value
-            + fname_sep
-            + CompressedFileExtension.GZ.value
-        )
-    else:
-        raise ValueError(f"Unknown compression: {compression}.")
-
-
-def prepare_measure_filename(measure, dirname, ext):
-
-    if measure == Measures.DICE:
-        file_basename = dice_fname_label
-    elif measure == Measures.JACCARD:
-        file_basename = jaccard_fname_label
-    elif measure == Measures.HAUSDORFF:
-        file_basename = hausdorff_fname_label
-    elif measure == Measures.HAUSDORFF95:
-        file_basename = hausdorff95_fname_label
-    elif measure == Measures.MEAN_SURFACE_DISTANCE:
-        file_basename = msd_fname_label
-    elif measure == Measures.VOLUME_SIMILARITY:
-        file_basename = vs_fname_label
-    elif measure == Measures.CENTER_OF_MASS_DISTANCE:
-        file_basename = cm_dist_fname_label
-    else:
-        raise NotImplementedError(f"{measure} feature not expected.")
-
-    return Path(dirname).joinpath(file_basename + build_suffix(ext))
-
-
-def prepare_labeled_stats_filename(label, dirname, ext):
-
-    _basename = label + underscore + stats_fname_label
-    return Path(dirname).joinpath(_basename + build_suffix(ext))
-
-
 def create_measure_df(data, labels, sub_ids, describe=True):
 
-    df = pd.DataFrame(data, columns=labels, index=sub_ids)
+    df = pd.DataFrame(
+        data, columns=[participant_label_id, *labels], index=sub_ids
+    )
     # df.index.names = [idx_label]
     stats_df = None
     # Compute stats if requested
@@ -164,90 +100,79 @@ def main():
 
     sep = "\t"
     df_particip = pd.read_csv(args.in_participants_fname, sep=sep)
-    sub_ids = sorted(df_particip[particip_id].values)
+    sub_ids = sorted(df_particip[participant_label_id].values)
 
     df_lut = pd.read_csv(args.in_labels_fname, sep=sep)
-    labels = sorted(df_lut[label_id].values)
+    labels = sorted(df_lut[lut_class_id_label].values)
 
     exclude_background = True
     if exclude_background:
         labels = list(np.asarray(labels)[np.asarray(labels) != 0])
 
     measures = [
-        Measures.DICE,
-        Measures.JACCARD,
-        Measures.HAUSDORFF,
-        Measures.HAUSDORFF95,
-        Measures.MEAN_SURFACE_DISTANCE,
-        Measures.VOLUME_SIMILARITY,
-        Measures.CENTER_OF_MASS_DISTANCE,
+        Measure.DICE,
+        Measure.JACCARD,
+        Measure.HAUSDORFF,
+        Measure.HAUSDORFF95,
+        Measure.MEAN_SURFACE_DISTANCE,
+        Measure.VOLUME_SIMILARITY,
+        Measure.VOLUME_ERROR,
+        Measure.CENTER_OF_MASS_DISTANCE,
     ]
 
-    metrics_dice = []
-    metrics_jaccard = []
-    metrics_hd = []
-    metrics_hd95 = []
-    metrics_msd = []
-    metrics_vs = []
-    cm_dist = []
-
-    for _id, gnd_th_fname, pred_fname in zip(
+    metrics = []
+    for sub_id, gnd_th_fname, pred_fname in zip(
         sub_ids, gnd_th_lmap_fnames, pred_lmap_fnames
     ):
 
-        # assert _id in Path(gnd_th_fname).with_suffix("").stem
-        # assert _id in Path(pred_fname).with_suffix("").stem
+        assert str(sub_id) in Path(gnd_th_fname).with_suffix("").stem
+        assert str(sub_id) in Path(pred_fname).with_suffix("").stem
 
         gnd_th_img = nib.load(gnd_th_fname)
         pred_img = nib.load(pred_fname)
 
-        _metrics = compute_surface_distance(
+        _metrics = compute_metrics(
             gnd_th_img, pred_img, labels, exclude_background=exclude_background
         )[0]
-
-        metrics_dice.append(_metrics["dice"])
-        metrics_jaccard.append(_metrics["jaccard"])
-        metrics_hd.append(_metrics["hd"])
-        metrics_hd95.append(_metrics["hd95"])
-        metrics_msd.append(_metrics["msd"])
-        metrics_vs.append(_metrics["vs"])
-
-        _cm_dist, _, _ = compute_center_of_mass_distance(
+        vol_err = compute_volume_error(gnd_th_img, pred_img, labels)
+        cm_dist, _, _ = compute_center_of_mass_distance(
             gnd_th_img, pred_img, labels
         )
-        cm_dist.append(_cm_dist)
 
-    # ToDo
-    # Rearrange to have all left/right next to each other
+        _metrics["vol_err"] = list(vol_err)
+        _metrics["cm_dist"] = list(cm_dist)
 
+        metrics.append(_metrics)
+
+    # Get only the metrics of interest
+    filtered_metrics = [
+        {measure.value: item[measure.value] for measure in measures}
+        for item in metrics
+    ]
+
+    # Serialize each measure to a different file
     ext = DelimitedValuesFileExtension.TSV
     describe = True
-    measure_data = [
-        metrics_dice,
-        metrics_jaccard,
-        metrics_hd,
-        metrics_hd95,
-        metrics_msd,
-        metrics_vs,
-        cm_dist,
-    ]
-    for measure, data in zip(measures, measure_data):
-
-        df, stats_df = create_measure_df(
-            np.asarray(data), labels, sub_ids, describe=describe
+    for measure in measures:
+        _metric = np.asarray(
+            [item[measure.value] for item in filtered_metrics]
         )
-        fname = prepare_measure_filename(measure, args.out_dirname, ext)
+        df, stats_df = create_measure_df(
+            _metric, labels, sub_ids, describe=describe
+        )
+        file_basename = measure.value
+        fname = Path(args.out_dirname).joinpath(
+            file_basename + build_suffix(ext)
+        )
         df.to_csv(fname, sep=sep, na_rep="NA")
 
         # Save stats
         if stats_df is not None:
-            fname = prepare_labeled_stats_filename(
-                measure.value, args.out_dirname, ext
+            _basename = measure.value + underscore + stats_fname_label
+            fname = Path(args.out_dirname).joinpath(
+                _basename + build_suffix(ext)
             )
             stats_df.to_csv(fname, sep=sep)
-
-    # ToDo
-    # Generate and save error measure plots
 
 
 if __name__ == "__main__":

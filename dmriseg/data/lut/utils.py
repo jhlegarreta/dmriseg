@@ -30,6 +30,13 @@ from dmriseg.io.utils import build_suffix
 
 atlas_cmap_name_sep = "_"
 
+class_id_label = "ID"
+class_name_label = "LabelName"
+r_label = "R"
+g_label = "G"
+b_label = "B"
+a_label = "A"
+
 
 class Atlas(enum.Enum):
     BUCKNER = "buckner"
@@ -481,9 +488,9 @@ def lut2df(lut):
         {key: list([val[0], *(chain(val[1]))]) for key, val in lut.items()}
     )
 
-    columns = ["LabelName", "R", "G", "B", "A"]
+    columns = [class_name_label, r_label, g_label, b_label, a_label]
     df = pd.DataFrame.from_dict(_lut, orient="index", columns=columns)
-    df.index.name = "ID"
+    df.index.name = class_id_label
 
     return df
 

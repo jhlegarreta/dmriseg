@@ -20,6 +20,8 @@ from dmriseg.io.file_extensions import (
 from dmriseg.io.study_description import SubjectData
 
 checkpoint_file_rootname = "model"
+participant_label_id = "ID"
+underscore = "_"
 
 
 class DiffusionScalarMapFilenamePattern(enum.Enum):

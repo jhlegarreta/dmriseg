@@ -6,8 +6,8 @@ import numpy as np
 
 from dmriseg.analysis.measures import (
     compute_center_of_mass_distance,
+    compute_metrics,
     compute_relevant_labels,
-    compute_surface_distance,
     fill_missing_values,
 )
 
@@ -88,7 +88,7 @@ def test_fill_missing_values():
     assert _metrics[0] == metrics_expected[0]
 
 
-def test_compute_surface_distance():
+def test_compute_metrics():
 
     exclude_background = True
 
@@ -106,7 +106,7 @@ def test_compute_surface_distance():
     ).astype(np.float32)
     labels = sorted(map(int, np.unique(image1)))
     img1 = nib.Nifti1Image(image1, affine=np.eye(4), dtype=np.float32)
-    metrics = compute_surface_distance(
+    metrics = compute_metrics(
         img1, img1, labels, exclude_background=exclude_background
     )
 
@@ -143,7 +143,7 @@ def test_compute_surface_distance():
     labels_img2 = sorted(map(int, np.unique(image2)))
     labels = sorted(set(labels_img1).union(set(labels_img2)))
     img2 = nib.Nifti1Image(image2, affine=np.eye(4), dtype=np.float32)
-    metrics = compute_surface_distance(
+    metrics = compute_metrics(
         img1, img2, labels, exclude_background=exclude_background
     )
     assert [len(vals) == len(labels[1:]) for vals in metrics[0].values()]
@@ -155,7 +155,7 @@ def test_compute_surface_distance():
     # Check with a number of labels that the ground truth and the prediction
     # are missing (e.g. they are missing the fastigial)
     labels = [0, 1, 2, 3, 4, 5]
-    metrics = compute_surface_distance(
+    metrics = compute_metrics(
         img1, img2, labels, exclude_background=exclude_background
     )
     assert [len(vals) == len(labels[1:]) for vals in metrics[0].values()]
@@ -171,9 +171,9 @@ def test_compute_surface_distance():
     # labels1 = [0, 1, 2]
     # gdth_img = np.array([[0, 0, 1], [0, 1, 2]])
     # pred_img = np.array([[0, 0, 1], [0, 2, 2]])
-    # metrics1 = compute_surface_distance(
+    # metrics1 = compute_metrics(
     #   labels=labels1[1:], gdth_img=gdth_img, pred_img=pred_img)
-    # metrics = compute_surface_distance(
+    # metrics = compute_metrics(
     #     img1, img2, labels, exclude_background=exclude_background
     # )
 
@@ -195,7 +195,7 @@ def test_compute_surface_distance():
 
     # img2_fname = "/mnt/data/connectome/suit/results/cer_seg_100408.nii"
     # img2 = nib.load(img2_fname)
-    # metrics = compute_surface_distance(
+    # metrics = compute_metrics(
     #     img1, img2, labels, exclude_background=exclude_background
     # )
 
