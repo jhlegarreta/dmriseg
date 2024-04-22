@@ -35,3 +35,7 @@ class CompressedFileExtension(enum.Enum):
 
 class PyTorchCheckpointFileExtension(enum.Enum):
     PT = "pt"
+
+
+class FigureFileExtension(enum.Enum):
+    PNG = "png"
