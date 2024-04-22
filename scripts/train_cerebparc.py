@@ -26,15 +26,17 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.tensorboard import SummaryWriter
 
 from dmriseg.dataset.utils import (
-    boxplot_channel_metric,
     extract_slice,
     get_datasets_cerebparc,
-    get_label_cmap,
     get_model,
     get_suit_classnames,
     get_timestamp,
     get_transforms,
     inference,
+)
+from dmriseg.visualization.plot_utils import (
+    boxplot_channel_metric,
+    get_label_cmap,
     plot_loss_and_metric,
 )
 
