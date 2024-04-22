@@ -689,6 +689,61 @@ suit_lut = dict(
     }
 )
 
+suit_nuclei = dict(
+    {
+        29: "Left_Dentate",
+        30: "Right_Dentate",
+        31: "Left_Interposed",
+        32: "Right_Interposed",
+        33: "Left_Fastigial",
+        34: "Right_Fastigial",
+    }
+)
+
+suit_left_lobule_lut = dict(
+    {
+        1: "Left_I_IV",
+        3: "Left_V",
+        5: "Left_VI",
+        8: "Left_CrusI",
+        11: "Left_CrusII",
+        14: "Left_VIIb",
+        17: "Left_VIIIa",
+        20: "Left_VIIIb",
+        23: "Left_IX",
+        26: "Left_X",
+    }
+)
+
+suit_right_lobule_lut = dict(
+    {
+        2: "Right_I_IV",
+        4: "Right_V",
+        7: "Right_VI",
+        10: "Right_CrusI",
+        13: "Right_CrusII",
+        16: "Right_VIIb",
+        19: "Right_VIIIa",
+        22: "Right_VIIIb",
+        25: "Right_IX",
+        28: "Right_X",
+    }
+)
+
+
+suit_vermis_lut = dict(
+    {
+        6: "Vermis_VI",
+        9: "Vermis_CrusI",
+        12: "Vermis_CrusII",
+        15: "Vermis_VIIb",
+        18: "Vermis_VIIIa",
+        21: "Vermis_VIIIb",
+        24: "Vermis_IX",
+        27: "Vermis_X",
+    }
+)
+
 
 def get_suit_classnames():
 
