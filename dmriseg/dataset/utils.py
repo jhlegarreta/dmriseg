@@ -632,20 +632,37 @@ def get_sw_prediction(image, model, patch_size, overlap, blend_mode, tta):
     return prediction
 
 
-def boxplot_channel_metric(metric_values, metric_name, class_names, epoch):
+def boxplot_channel_metric(
+    metric_values, metric_name, class_names, cmap=None, title=None, grid=False
+):
     assert metric_values.shape[1] == len(class_names)
 
     figsize = (15, 10)
     fig, ax = plt.subplots(figsize=figsize)
-    ax.boxplot(metric_values)
+    bplot = ax.boxplot(metric_values, patch_artist=True)
+    # Set the face colors
+    if cmap is not None:
+        if isinstance(cmap, np.ndarray):
+            for patch, color in zip(bplot["boxes"], cmap):
+                patch.set_facecolor(color)
+        elif isinstance(cmap, str):
+            cm = plt.cm.get_cmap(cmap)
+            class_count = len(class_names)
+            colors = [cm(val / class_count) for val in range(class_count)]
+            for patch, color in zip(bplot["boxes"], colors):
+                patch.set_facecolor(color)
+        else:
+            raise NotImplementedError(f"{cmap} not implemented.")
+
     ticks = [i + 1 for i in range(len(class_names))]
     plt.xticks(ticks, class_names, rotation=45, ha="right")
     ax.set_ylim([0, 1])
     plt.xlabel("Class")
     plt.ylabel(f"{metric_name}")
-    plt.title(f"EPOCH={epoch}")
-    plt.grid(True)
-
+    if title is not None:
+        plt.title(title)
+    plt.grid(grid)
+    fig.tight_layout()
     return fig
 
 
