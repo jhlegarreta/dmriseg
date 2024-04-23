@@ -193,24 +193,20 @@ def main():
     )
 
     # Get data loaders
-    train_loader = DataLoader(
-        CacheDataset(
-            data=train_files,
-            transform=transforms[dataset]["train"],
-            cache_rate=1.0,
-        ),
-        batch_size=batch_size,
-        shuffle=True,
+    train_ds = CacheDataset(
+        data=train_files,
+        transform=transforms[dataset]["train"],
+        cache_rate=1.0,
     )
-    val_loader = DataLoader(
-        CacheDataset(
-            data=val_files,
-            transform=transforms[dataset]["val"],
-            cache_rate=1.0,
-        ),
-        batch_size=1,
-        shuffle=False,
+    train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+
+    vald_ds = CacheDataset(
+        data=val_files,
+        transform=transforms[dataset]["val"],
+        cache_rate=1.0,
     )
+    val_loader = DataLoader(vald_ds, batch_size=1, shuffle=False)
+
     max_epochs = 500  # steps // num_train
 
     # Get model
