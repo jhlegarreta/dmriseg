@@ -175,26 +175,29 @@ def write_dat(dat, pth_dat, pth_affine):
     nib.save(nib.Nifti1Image(dat.detach().cpu().numpy(), affine), pth_dat)
 
 
-def inference(input, model, use_amp, patch_size=None):
-    """Run pytorch inference, either full image of sliding window."""
+def inference(
+    _input, model, use_amp, patch_size=None, sw_batch_size=1, overlap=0.5
+):
+    """Run pytorch inference, either full image of sliding window.
+    Warning : The overlap 0.5 value differs from MONAI's default 0.25"""
 
-    def _compute(input, model, patch_size):
+    def _compute(__input, _model, _patch_size, _sw_batch_size, _overlap):
         if patch_size is not None:
             return sliding_window_inference(
-                inputs=input,
-                roi_size=patch_size,
-                sw_batch_size=1,
-                predictor=model,
-                overlap=0.5,
+                inputs=__input,
+                roi_size=_patch_size,
+                sw_batch_size=_sw_batch_size,
+                predictor=_model,
+                overlap=_overlap,
             )
         else:
-            return model(input)
+            return model(__input)
 
     if use_amp:
         with torch.cuda.amp.autocast():
-            return _compute(input, model, patch_size)
+            return _compute(_input, model, patch_size, sw_batch_size, overlap)
     else:
-        return _compute(input, model, patch_size)
+        return _compute(_input, model, patch_size, sw_batch_size, overlap)
 
 
 def get_datasets(
@@ -333,6 +336,32 @@ def get_test_dataset(test_img_dirname, test_2d=False, batch_size=1):
     return datasets
 
 
+def get_test_dataset_cerebparc(test_img_dirname, test_2d=False, batch_size=1):
+    """Get a dataset."""
+    datasets = {
+        "cerebellum_cerebparc": {
+            "test": None,
+            "n_labels": None,  # excluding background and GMM classes
+            "target_labels": None,
+        },
+    }
+
+    dataset = "cerebellum_cerebparc"
+    test_images = [
+        str(f) for f in sorted(Path(test_img_dirname).rglob("*.nii.gz"))
+    ]
+    test_data = [{"image": image_name} for image_name in test_images]
+
+    datasets[dataset]["test"] = test_data[0:]
+
+    datasets[dataset]["target_labels"] = list(
+        MapLabelsCerebellumParc.label_mapping().values()
+    )
+    datasets[dataset]["n_labels"] = len(datasets[dataset]["target_labels"])
+
+    return datasets
+
+
 def get_transforms(
     name,
     target_labels=None,
@@ -441,6 +470,7 @@ def get_transforms(
             "cerebellum_cerebparc": {
                 "train": None,
                 "val": None,
+                "test": None,
             },
         }
 
