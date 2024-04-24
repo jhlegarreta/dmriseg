@@ -85,3 +85,19 @@ def boxplot_channel_metric(
     plt.grid(grid)
     fig.tight_layout()
     return fig
+
+
+def plot_curves(y, colors, names, xlabel, ylabel):
+
+    fig, ax = plt.subplots()
+
+    for idx, (vals, color, name) in enumerate(zip(y, colors, names)):
+        x = np.asarray(range(len(vals)))
+        ax.plot(x, vals, color=color, label=f"{name}")
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend()
+    plt.tight_layout()
+
+    return fig
