@@ -33,6 +33,7 @@ def create_measure_df(data, labels, sub_ids, describe=True):
     df = pd.DataFrame(
         data, columns=[participant_label_id, *labels], index=sub_ids
     )
+    df.index = df[participant_label_id]
     # df.index.names = [idx_label]
     stats_df = None
     # Compute stats if requested
