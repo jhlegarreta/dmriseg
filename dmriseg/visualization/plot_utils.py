@@ -101,3 +101,40 @@ def plot_curves(y, colors, names, xlabel, ylabel):
     plt.tight_layout()
 
     return fig
+
+
+def plot_shaded_strip(
+    mean_features,
+    std_dev_features,
+    strip_labels,
+    xlabel,
+    ylabel,
+    colormap_name="YlOrRd",
+    alpha=0.3,
+    figsize=(12, 10),
+):
+
+    strip_count = len(strip_labels)
+
+    # Get colormap from colormap name
+    cmap = plt.cm.get_cmap(colormap_name)
+    colors = cmap(np.linspace(0.1, 1.0, strip_count))
+
+    fig, ax = plt.subplots(figsize=figsize)
+    for mean, std_dev, label, color in zip(
+        mean_features, std_dev_features, strip_labels, colors
+    ):
+
+        x = np.asarray(range(len(mean)))
+        ax.plot(x, mean, label=label, c=color)
+        ax.fill_between(
+            x, mean - std_dev, mean + std_dev, alpha=alpha, facecolor=color
+        )
+
+    # Add some text for labels, title and custom x-axis tick labels, etc.
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.legend()
+    plt.tight_layout()
+
+    return fig

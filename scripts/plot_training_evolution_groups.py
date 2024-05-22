@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Plot training evolution: plot loss and metric across epochs as a solid, separate
-curve in the same figure.
+Plot training evolution: plot loss and metric across epochs grouped by name: for
+each group plot their mean values as a solid curve and their standard deviation
+values as a shaded strip.
 """
 
 import argparse
@@ -13,7 +14,7 @@ from pathlib import Path
 import numpy as np
 from matplotlib import pyplot as plt
 
-from dmriseg.visualization.plot_utils import plot_curves
+from dmriseg.visualization.plot_utils import plot_shaded_strip
 
 
 def _build_arg_parser():
@@ -73,14 +74,35 @@ def main():
 
     assert [epoch == epochs[0] for epoch in epochs]
 
-    prop_cycle = plt.rcParams["axes.prop_cycle"]
-    colors = prop_cycle.by_key()["color"][: len(args.model_metadata_fnames)]
+    # prop_cycle = plt.rcParams["axes.prop_cycle"]
+    # colors = prop_cycle.by_key()["color"][: len(args.model_metadata_fnames)]
+
+    # Identify the groups
+    names = args.model_names
+    unique_names = sorted(set(names))
+    groupd_idx = []
+    for name in unique_names:
+        idx = [_idx for _idx, value in enumerate(names) if value == name]
+        groupd_idx.append(idx)
+
+    # Compute the mean and std dev within each group
+    mean_loss = []
+    stddev_loss = []
+    for _idx in groupd_idx:
+        _mean_loss = np.mean(loss_values[_idx], axis=0)
+        _stddev_loss = np.std(loss_values[_idx], axis=0)
+
+        mean_loss.append(_mean_loss)
+        stddev_loss.append(_stddev_loss)
 
     # Plot loss values
-    names = args.model_names
     xlabel = "Epoch"
-    ylabel = "Loss"
-    fig = plot_curves(loss_values, colors, names, xlabel, ylabel)
+    ylabel_training = "Loss"
+    ylabel_metric = "Metric"
+
+    fig = plot_shaded_strip(
+        mean_loss, stddev_loss, unique_names, xlabel, ylabel_training
+    )
     fig.savefig(args.out_loss_plot_fname)
     plt.close(fig)
 
@@ -88,9 +110,19 @@ def main():
     # best_metric = np.asarray([item["best_metric"] for item in meta_data])
     metric_values = np.asarray([item["metric_values"] for item in meta_data])
 
-    names = args.model_names
-    ylabel = "Metric"
-    fig = plot_curves(metric_values, colors, names, xlabel, ylabel)
+    # Compute the mean and std dev within each group
+    mean_metric = []
+    stddev_metric = []
+    for _idx in groupd_idx:
+        _mean_metric = np.mean(metric_values[_idx], axis=0)
+        _stddev_metric = np.std(metric_values[_idx], axis=0)
+
+        mean_metric.append(_mean_metric)
+        stddev_metric.append(_stddev_metric)
+
+    fig = plot_shaded_strip(
+        mean_metric, stddev_metric, unique_names, xlabel, ylabel_metric
+    )
     fig.savefig(args.out_metric_plot_fname)
     plt.close(fig)
 
