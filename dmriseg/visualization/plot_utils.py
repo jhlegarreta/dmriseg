@@ -138,3 +138,50 @@ def plot_shaded_strip(
     plt.tight_layout()
 
     return fig
+
+
+def show_mplt_colormap(colormap, figsize=(15, 3)):
+
+    fig = plt.figure(figsize=figsize)
+
+    # ToDo
+    # Should we use len(colormap._lut) instead of colormap.N?
+
+    # Specifying a step that is too small generates a black line plot due to
+    # the density of values/a large width/height aspect ratio, although
+    # applying the colormap to another arbitrary image shows that the colors
+    # are effectively there, e.g.
+    #
+    # data = np.random.rand(10, 10) * 2 - 1
+    # plt.pcolor(data, cmap=colormap)
+    # plt.colorbar()
+    # plt.show()
+    #
+    # Repeating the rows to reduce the width/height aspect ratio makes the
+    # trick.
+
+    # ToDo
+    # When having a lot of colors the below does not work well; the colorbar
+    # black border overlaps with the colors and we see nothing
+    # step = 1  # 0.01
+    # height = int(1 / step)
+    # plt.imshow(
+    #    np.asarray([list(np.arange(0, colormap.N, step))] * height),
+    #    interpolation="nearest",
+    #    origin="lower",
+    #    cmap=colormap,
+    # )
+    # plt.imshow([list(np.arange(0, colormap.N, 0.1))],
+    #           interpolation='nearest', origin='lower', cmap=colormap)
+
+    # Alternatively
+    from matplotlib.cm import ScalarMappable
+
+    sm = ScalarMappable(cmap=colormap, norm=plt.Normalize(0, colormap.N))
+    sm.set_array([])
+    plt.colorbar(sm)
+
+    plt.xticks([])
+    plt.yticks([])
+
+    return fig

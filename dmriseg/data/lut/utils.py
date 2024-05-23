@@ -293,6 +293,14 @@ def read_lut_from_tsv(fname):
     return df.set_index("index").agg(tuple, axis=1).to_dict()
 
 
+def read_lut_from_tsv2(fname):
+    df = pd.read_csv(fname, sep="\t")
+
+    # ToDo
+    # Add alpha ??
+    return df.set_index("ID")[["R", "G", "B"]].apply(tuple, axis=1).to_dict()
+
+
 def read_lut_from_lut(fname):
 
     lut = dict()
