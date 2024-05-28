@@ -12,6 +12,7 @@ import pandas as pd
 
 from dmriseg.io.file_extensions import (
     CompressedFileExtension,
+    DelimitedValuesFileExtension,
     NiftiFileExtension,
     NrrdFileExtension,
     PyTorchCheckpointFileExtension,
@@ -28,6 +29,15 @@ class DiffusionScalarMapFilenamePattern(enum.Enum):
     FA = "fa"
     MD = "md"
     TRACE = "trace"
+
+
+def get_delimited_value_extension(sep):
+    if sep == ",":
+        return DelimitedValuesFileExtension.CSV
+    elif sep == "\t":
+        return DelimitedValuesFileExtension.TSV
+    else:
+        raise ValueError(f"Unrecognized delimiter: {sep}")
 
 
 def build_suffix(
