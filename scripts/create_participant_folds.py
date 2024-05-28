@@ -19,7 +19,11 @@ import pandas as pd
 from sklearn import model_selection
 
 from dmriseg.io.learning_description import LearningData, LearningSplit
-from dmriseg.io.utils import participant_label_id
+from dmriseg.io.utils import (
+    build_suffix,
+    get_delimited_value_extension,
+    participant_label_id,
+)
 
 split_label = LearningData.SPLIT.value
 train_label = LearningSplit.TRAIN.value
@@ -152,12 +156,15 @@ def main():
 
     file_rootname = Path(args.in_participant_data).with_suffix("").stem
 
+    ext = get_delimited_value_extension(sep)
+    suffix = build_suffix(ext, compression=None)
+
     # Save folds
     for idx, df in enumerate(df_folds):
         out_dir_fold = args.out_dirname / f"fold-{idx}"
         os.makedirs(out_dir_fold, exist_ok=False)
         df.to_csv(
-            out_dir_fold / f"{file_rootname}_fold-{idx}.csv",
+            out_dir_fold / f"{file_rootname}_fold-{idx}${suffix}",
             index=False,
             sep=sep,
         )
@@ -165,7 +172,8 @@ def main():
         for split in [train_label, valid_label, test_label]:
             df_split = df.loc[df[split_label] == split][participant_label_id]
             df_split.to_csv(
-                out_dir_fold / f"{file_rootname}_fold-{idx}_split-{split}.csv",
+                out_dir_fold
+                / f"{file_rootname}_fold-{idx}_split-{split}${suffix}",
                 index=False,
                 sep=sep,
             )
