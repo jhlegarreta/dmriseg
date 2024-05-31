@@ -227,7 +227,7 @@ def main():
     )
     val_loader = DataLoader(valid_ds, batch_size=1, shuffle=False)
 
-    max_epochs = 200  # steps // num_train
+    max_epochs = 250  # steps // num_train
 
     # Get model
     model_name = "SegResNet16"
