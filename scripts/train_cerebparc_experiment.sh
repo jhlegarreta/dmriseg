@@ -5,24 +5,10 @@ source $(which virtualenvwrapper.sh)
 
 workon dmriseg
 
-fold=$1
-contrast=$2
+contrast=$1
 
-# Check fold
-possible_folds=("fold-0" "fold-1" "fold-2" "fold-3" "fold-4")
-found=0
-for value in "${possible_folds[@]}"; do
-  if [[ "${fold}" == "$value" ]]; then
-    found=1
-    break
-  fi
-done
-
-if [[ $found -eq 0 ]]; then
-  echo "${fold} is not in the list of possible folds:" "${possible_folds[@]}"
-  echo "Aborting"
-  exit 0
-fi
+# Folds
+folds=("fold-0" "fold-1" "fold-2" "fold-3" "fold-4")
 
 # Build the labels for the i/o dirs/files
 if [[ ${contrast} == "t1" ]]; then
@@ -67,21 +53,26 @@ data_root_dirname=/mnt/data/cerebellum_parc/experiments
 train_scipt_dirname=/home/jhlegarreta/src/dmriseg/scripts
 
 contrast_dirname=${data_root_dirname}/${contrast_folder_label}
-fold_dirname=${contrast_dirname}/${fold}
 
-img_train_dirname=${fold_dirname}/${train_split_label}
-img_valid_dirname=${fold_dirname}/${valid_split_label}
+for fold in "${folds[@]}"; do
 
-labelmap_train_dirname=${data_root_dirname}/labelmaps/${fold}/${train_split_label}
-labelmap_valid_dirname=${data_root_dirname}/labelmaps/${fold}/${valid_split_label}
+  fold_dirname=${contrast_dirname}/${fold}
 
-learning_out_dirname=${fold_dirname}/results/learning/segresnet16_batchsz1
+  img_train_dirname=${fold_dirname}/${train_split_label}
+  img_valid_dirname=${fold_dirname}/${valid_split_label}
 
-mkdir -p ${learning_out_dirname}
+  labelmap_train_dirname=${data_root_dirname}/labelmaps/${fold}/${train_split_label}
+  labelmap_valid_dirname=${data_root_dirname}/labelmaps/${fold}/${valid_split_label}
 
-python ${train_scipt_dirname}/train_cerebparc.py \
-  ${img_train_dirname} \
-  ${labelmap_train_dirname} \
-  ${img_valid_dirname} \
-  ${labelmap_valid_dirname} \
-  ${learning_out_dirname}
+  learning_out_dirname=${fold_dirname}/results/learning/segresnet16_batchsz1
+
+  mkdir -p ${learning_out_dirname}
+
+  python ${train_scipt_dirname}/train_cerebparc.py \
+    ${img_train_dirname} \
+    ${labelmap_train_dirname} \
+    ${img_valid_dirname} \
+    ${labelmap_valid_dirname} \
+    ${learning_out_dirname}
+
+done
