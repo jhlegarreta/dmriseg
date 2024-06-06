@@ -16,16 +16,12 @@ from dmriseg.analysis.measures import (
 )
 from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
-from dmriseg.io.utils import build_suffix, participant_label_id, underscore
-
-cm_dist_fname_label = "cm_dist_fname_label"
-dice_fname_label = "dice"
-hausdorff_fname_label = "hausdorff"
-hausdorff95_fname_label = "hausdorff95"
-jaccard_fname_label = "jaccard_fname_label"
-msd_fname_label = "msd_fname_label"
-vs_fname_label = "vs_fname_label"
-stats_fname_label = "stats"
+from dmriseg.io.utils import (
+    build_suffix,
+    participant_label_id,
+    stats_fname_label,
+    underscore,
+)
 
 
 def create_measure_df(data, labels, sub_ids, describe=True):
