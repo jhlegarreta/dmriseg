@@ -50,7 +50,7 @@ def _build_arg_parser():
     )
     parser.add_argument(
         "in_test_img_dirname",
-        help="Input training image dirname (*.nii.gz)",
+        help="Input testing image dirname (*.nii.gz)",
         type=Path,
     )
     parser.add_argument(
