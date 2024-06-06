@@ -12,16 +12,21 @@ Performance measure files are expected to have the following format:
 import argparse
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from dmriseg.analysis.measures import Measure
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
-from dmriseg.io.utils import build_suffix, participant_label_id, underscore
+from dmriseg.io.utils import (
+    build_suffix,
+    fold_label,
+    participant_label_id,
+    stats_fname_label,
+    underscore,
+)
 
-stats_fname_label = "stats"
 
-
-def aggregate_data(dirnames, measure, ext, sep):
+def aggregate_data(dirnames, folds, measure, ext, sep):
 
     suffix = build_suffix(ext)
     fnames = [dirname / Path(measure.value + suffix) for dirname in dirnames]
@@ -32,8 +37,14 @@ def aggregate_data(dirnames, measure, ext, sep):
     # Assert that they all have the same number of columns
     assert all(df.columns.equals(dfs[0].columns) for df in dfs)
     # Assert that they all have different participant ids
-    participant_ids = sorted([dfs.index.values for df in dfs])
+    participant_ids = sorted(np.array([df.index.values for df in dfs]).ravel())
     assert len(participant_ids) == len(set(participant_ids))
+
+    # Add the fold name as a column for informative purposes
+    [
+        df.insert(loc=0, column=fold_label, value=fold)
+        for fold, df in zip(folds, dfs)
+    ]
 
     df_aggregate = pd.concat(dfs, ignore_index=False)
     df_aggregate.sort_values(participant_label_id, inplace=True)
@@ -50,10 +61,16 @@ def _build_arg_parser():
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
-        "--in_performance_dirnames",
+        "--in_fold_performance_dirnames",
         help="Input dirnames where performance data files dwell (*.tsv)",
         nargs="+",
         type=Path,
+    )
+    parser.add_argument(
+        "--fold_names",
+        help="Fold name",
+        nargs="+",
+        type=str,
     )
     parser.add_argument(
         "--out_dirname",
@@ -92,19 +109,21 @@ def main():
     # Compose and save the aggregate performance data file for each measure
     for measure in measures:
         df_aggregate, df_stats = aggregate_data(
-            args.in_performance_dirnames, measure, ext, sep
+            args.in_fold_performance_dirnames,
+            args.fold_names,
+            measure,
+            ext,
+            sep,
         )
 
         file_basename = measure.value
-        fname = Path(args.out_reporting_dirname).joinpath(
+        fname = Path(args.out_dirname).joinpath(
             file_basename + build_suffix(ext)
         )
         df_aggregate.to_csv(fname, sep=sep, na_rep="NA")
 
         _basename = measure.value + underscore + stats_fname_label
-        fname = Path(args.out_reporting_dirname).joinpath(
-            _basename + build_suffix(ext)
-        )
+        fname = Path(args.out_dirname).joinpath(_basename + build_suffix(ext))
         df_stats.to_csv(fname, sep=sep)
 
 
