@@ -1,6 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
+Compute performance.
+
+Considerations:
+- The participant ids have to match the prediction and ground truth data
+filename sorting.
+- Prediction filenames and ground truth filenames have to contain the participant
+id.
+"""
+
 import argparse
 from pathlib import Path
 
