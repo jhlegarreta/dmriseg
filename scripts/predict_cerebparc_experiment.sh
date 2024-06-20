@@ -26,17 +26,17 @@ elif [[ ${contrast} == "dwi2k" ]]; then
 elif [[ ${contrast} == "dwi3k" ]]; then
   contrast_folder_label=dmri_hcp_sphm_b3000
 elif [[ ${contrast} == "fa" ]]; then
-  contrast_folder_label=dmri_hcp_ad
+  contrast_folder_label=dmri_hcp_fa
 elif [[ ${contrast} == "md" ]]; then
   contrast_folder_label=dmri_hcp_md
 elif [[ ${contrast} == "rd" ]]; then
   contrast_folder_label=dmri_hcp_rd
 elif [[ ${contrast} == "evals_e1" ]]; then
-  contrast_folder_label=dmri_hcp_rd
+  contrast_folder_label=dmri_hcp_evals_e1
 elif [[ ${contrast} == "evals_e2" ]]; then
-  contrast_folder_label=dmri_hcp_rd
+  contrast_folder_label=dmri_hcp_evals_e2
 elif [[ ${contrast} == "evals_e3" ]]; then
-  contrast_folder_label=dmri_hcp_rd
+  contrast_folder_label=dmri_hcp_evals_e3
 elif [[ ${contrast} == "ak" ]]; then
   contrast_folder_label=dmri_hcp_ak
 elif [[ ${contrast} == "mk" ]]; then
