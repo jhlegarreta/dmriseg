@@ -33,6 +33,12 @@ elif [[ ${contrast} == "md" ]]; then
   contrast_folder_label=dmri_hcp_md
 elif [[ ${contrast} == "rd" ]]; then
   contrast_folder_label=dmri_hcp_rd
+elif [[ ${contrast} == "evals_e1" ]]; then
+  contrast_folder_label=dmri_hcp_evals_e1
+elif [[ ${contrast} == "evals_e2" ]]; then
+  contrast_folder_label=dmri_hcp_evals_e2
+elif [[ ${contrast} == "evals_e3" ]]; then
+  contrast_folder_label=dmri_hcp_evals_e3
 elif [[ ${contrast} == "ak" ]]; then
   contrast_folder_label=dmri_hcp_ak
 elif [[ ${contrast} == "mk" ]]; then
