@@ -34,6 +34,22 @@ from dmriseg.io.utils import (
 )
 
 
+def compute_measures(gnd_th_img, pred_img, labels, exclude_background):
+
+    _metrics = compute_metrics(
+        gnd_th_img, pred_img, labels, exclude_background=exclude_background
+    )[0]
+    vol_err = compute_volume_error(gnd_th_img, pred_img, labels)
+    cm_dist, _, _ = compute_center_of_mass_distance(
+        gnd_th_img, pred_img, labels
+    )
+
+    _metrics["vol_err"] = list(vol_err)
+    _metrics["cm_dist"] = list(cm_dist)
+
+    return _metrics
+
+
 def create_measure_df(data, labels, sub_ids, describe=True):
 
     df = pd.DataFrame(data, columns=labels, index=sub_ids)
@@ -45,6 +61,26 @@ def create_measure_df(data, labels, sub_ids, describe=True):
         stats_df = df.describe()
 
     return df, stats_df
+
+
+def serialize_measures(metrics, measures, labels, sub_ids, sep, out_dirname):
+
+    ext = DelimitedValuesFileExtension.TSV
+    describe = True
+    for measure in measures:
+        _metric = np.asarray([item[measure.value] for item in metrics])
+        df, stats_df = create_measure_df(
+            _metric, labels, sub_ids, describe=describe
+        )
+        file_basename = measure.value
+        fname = Path(out_dirname).joinpath(file_basename + build_suffix(ext))
+        df.to_csv(fname, sep=sep, na_rep="NA")
+
+        # Save stats
+        if stats_df is not None:
+            _basename = measure.value + underscore + stats_fname_label
+            fname = Path(out_dirname).joinpath(_basename + build_suffix(ext))
+            stats_df.to_csv(fname, sep=sep)
 
 
 def _build_arg_parser():
@@ -135,19 +171,19 @@ def main():
         assert str(sub_id) in Path(gnd_th_fname).with_suffix("").stem
         assert str(sub_id) in Path(pred_fname).with_suffix("").stem
 
+        print(f"participant: {sub_id}")
+
         gnd_th_img = nib.load(gnd_th_fname)
         pred_img = nib.load(pred_fname)
 
-        _metrics = compute_metrics(
-            gnd_th_img, pred_img, labels, exclude_background=exclude_background
-        )[0]
-        vol_err = compute_volume_error(gnd_th_img, pred_img, labels)
-        cm_dist, _, _ = compute_center_of_mass_distance(
-            gnd_th_img, pred_img, labels
+        print(f"gnd_th_fname: {gnd_th_fname}")
+        print(f"pred_fname: {pred_fname}")
+
+        _metrics = compute_measures(
+            gnd_th_img, pred_img, labels, exclude_background
         )
 
-        _metrics["vol_err"] = list(vol_err)
-        _metrics["cm_dist"] = list(cm_dist)
+        print("Computed metrics for participant")
 
         metrics.append(_metrics)
 
@@ -158,28 +194,10 @@ def main():
     ]
 
     # Serialize each measure to a different file
-    ext = DelimitedValuesFileExtension.TSV
-    describe = True
-    for measure in measures:
-        _metric = np.asarray(
-            [item[measure.value] for item in filtered_metrics]
-        )
-        df, stats_df = create_measure_df(
-            _metric, labels, sub_ids, describe=describe
-        )
-        file_basename = measure.value
-        fname = Path(args.out_dirname).joinpath(
-            file_basename + build_suffix(ext)
-        )
-        df.to_csv(fname, sep=sep, na_rep="NA")
-
-        # Save stats
-        if stats_df is not None:
-            _basename = measure.value + underscore + stats_fname_label
-            fname = Path(args.out_dirname).joinpath(
-                _basename + build_suffix(ext)
-            )
-            stats_df.to_csv(fname, sep=sep)
+    print("Serializing")
+    serialize_measures(
+        filtered_metrics, measures, labels, sub_ids, sep, args.out_dirname
+    )
 
 
 if __name__ == "__main__":
