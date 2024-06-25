@@ -31,11 +31,11 @@ elif [[ ${contrast} == "md" ]]; then
   contrast_folder_label=dmri_hcp_md
 elif [[ ${contrast} == "rd" ]]; then
   contrast_folder_label=dmri_hcp_rd
-elif [[ ${contrast} == "evals_e1" ]]; then
+elif [[ ${contrast} == "evalse1" ]]; then
   contrast_folder_label=dmri_hcp_evals_e1
-elif [[ ${contrast} == "evals_e2" ]]; then
+elif [[ ${contrast} == "evalse2" ]]; then
   contrast_folder_label=dmri_hcp_evals_e2
-elif [[ ${contrast} == "evals_e3" ]]; then
+elif [[ ${contrast} == "evalse3" ]]; then
   contrast_folder_label=dmri_hcp_evals_e3
 elif [[ ${contrast} == "ak" ]]; then
   contrast_folder_label=dmri_hcp_ak
@@ -76,13 +76,6 @@ for fold in "${folds[@]}"; do
   perf_dirname=${fold_dirname}/results/performance
 
   mkdir ${perf_dirname}
-
-  echo ${in_participants_fname}
-  echo ${in_gnd_th_labelmap_dirname}
-  echo ${in_pred_labelmap_dirname}
-  echo ${in_labels_fname}
-  echo ${perf_dirname}
-  exit
 
   python ${perf_scipt_dirname}/compute_performance.py \
     ${in_participants_fname} \
