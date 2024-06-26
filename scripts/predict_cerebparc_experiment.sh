@@ -54,7 +54,7 @@ test_split_label=test_set
 data_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline
 contrast_dirname=${data_root_dirname}/${contrast_folder_label}
 
-predict_scipt_dirname=/home/jhlegarreta/src/dmriseg/scripts
+predict_script_dirname=/home/jhlegarreta/src/dmriseg/scripts
 
 echo "Starting prediction..."
 for fold in "${folds[@]}"; do
@@ -68,7 +68,7 @@ for fold in "${folds[@]}"; do
 
   mkdir ${pred_dirname}
 
-  python ${predict_scipt_dirname}/predict_cerebparc.py \
+  python ${predict_script_dirname}/predict_cerebparc.py \
     ${img_test_dirname} \
     ${weights_dirname}/model_best.pth \
     ${pred_dirname}

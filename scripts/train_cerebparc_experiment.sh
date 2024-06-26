@@ -56,7 +56,7 @@ valid_split_label=valid_set
 
 data_root_dirname=/mnt/data/cerebellum_parc/experiments
 
-train_scipt_dirname=/home/jhlegarreta/src/dmriseg/scripts
+train_script_dirname=/home/jhlegarreta/src/dmriseg/scripts
 
 contrast_dirname=${data_root_dirname}/${contrast_folder_label}
 
@@ -74,7 +74,7 @@ for fold in "${folds[@]}"; do
 
   mkdir -p ${learning_out_dirname}
 
-  python ${train_scipt_dirname}/train_cerebparc.py \
+  python ${train_script_dirname}/train_cerebparc.py \
     ${img_train_dirname} \
     ${labelmap_train_dirname} \
     ${img_valid_dirname} \

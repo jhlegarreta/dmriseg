@@ -60,7 +60,7 @@ gnd_th_labelmap_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipel
 
 in_labels_fname=/mnt/data/lut/suit_diedrichsen_lut0255_nuclei_colored.tsv
 
-perf_scipt_dirname=/home/jhlegarreta/src/dmriseg/scripts
+perf_script_dirname=/home/jhlegarreta/src/dmriseg/scripts
 
 echo "Starting performance computation..."
 for fold in "${folds[@]}"; do
@@ -77,7 +77,7 @@ for fold in "${folds[@]}"; do
 
   mkdir ${perf_dirname}
 
-  python ${perf_scipt_dirname}/compute_performance.py \
+  python ${perf_script_dirname}/compute_performance.py \
     ${in_participants_fname} \
     ${in_gnd_th_labelmap_dirname} \
     ${in_pred_labelmap_dirname} \
