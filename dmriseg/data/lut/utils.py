@@ -80,6 +80,19 @@ class ColormapName(enum.Enum):
     XUE_SUB2 = "xue_sub2"
 
 
+class SuitAtlasDiedrichsenGroups(enum.Enum):
+    ALL = "all"
+    CRUS = "crus"
+    DCN = "dcn"
+    DENTATE = "dentate"
+    FASTIGIAL = "fastigial"
+    INTERPOSED = "interposed"
+    LH = "lh"
+    LOBULES = "lobules"
+    VERMIS = "vermis"
+    RH = "rh"
+
+
 suit_atlas_gh_url_base = (
     "https://raw.githubusercontent.com/DiedrichsenLab/cerebellar_atlases"
 )
@@ -546,3 +559,28 @@ def map_diedrichsen2cerebnet():
 
     assert len(diedrichsen2cerebnet_map.keys()) == 34 + 1
     assert len(set(diedrichsen2cerebnet_map.values())) == 28
+
+
+# ToDo
+# Improve this: download or store the LUT and read the data from there
+# identifying the groups
+def get_diedrichsen_group_labels(group_name):
+
+    if group_name == SuitAtlasDiedrichsenGroups.DCN.value:
+        return [29, 30, 31, 32, 33, 34]
+    elif group_name == SuitAtlasDiedrichsenGroups.DENTATE.value:
+        return [29, 30]
+    elif group_name == SuitAtlasDiedrichsenGroups.INTERPOSED.value:
+        return [31, 32]
+    elif group_name == SuitAtlasDiedrichsenGroups.FASTIGIAL.value:
+        return [33, 34]
+    elif group_name == SuitAtlasDiedrichsenGroups.VERMIS.value:
+        return [6, 9, 12, 15, 18, 21, 24, 27]
+    elif group_name == SuitAtlasDiedrichsenGroups.LOBULES.value:
+        return [1, 2, 3, 4, 5, 7, 14, 16, 17, 19, 20, 22, 23, 25, 26, 28]
+    elif group_name == SuitAtlasDiedrichsenGroups.CRUS.value:
+        return [8, 10, 11, 13]
+    elif group_name == SuitAtlasDiedrichsenGroups.ALL.value:
+        return list(range(1, 35))
+    else:
+        raise NotImplementedError(f"{group_name} not implemented")
