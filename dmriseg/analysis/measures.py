@@ -140,7 +140,7 @@ def fill_missing_values(metrics, labels, msng_idx):
     return [metrics_filled]
 
 
-def compute_metrics(img1, img2, labels, exclude_background=True):
+def compute_metrics(img1, img2, spacing, labels, exclude_background=True):
     """dice, jaccard, precision, recall, fpr, fnr, vs, hd, hd95, msd, mdsd,
     stdsd"""
 
@@ -164,6 +164,7 @@ def compute_metrics(img1, img2, labels, exclude_background=True):
         labels=prsnt_labels,
         gdth_img=np.asarray(img1_data),
         pred_img=np.asarray(img2_data),
+        spacing=spacing,
     )
 
     # Fill in the metrics for the missing labels if any

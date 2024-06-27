@@ -34,10 +34,16 @@ from dmriseg.io.utils import (
 )
 
 
-def compute_measures(gnd_th_img, pred_img, labels, exclude_background):
+def compute_measures(
+    gnd_th_img, pred_img, spacing, labels, exclude_background
+):
 
     _metrics = compute_metrics(
-        gnd_th_img, pred_img, labels, exclude_background=exclude_background
+        gnd_th_img,
+        pred_img,
+        spacing,
+        labels,
+        exclude_background=exclude_background,
     )[0]
     vol_err = compute_volume_error(gnd_th_img, pred_img, labels)
     cm_dist, _, _ = compute_center_of_mass_distance(
@@ -176,11 +182,21 @@ def main():
         gnd_th_img = nib.load(gnd_th_fname)
         pred_img = nib.load(pred_fname)
 
+        # Assert they have the same spacing
+        gnd_th_img_spacing = gnd_th_img.header.get_zooms()
+        pred_img_spacing = pred_img.header.get_zooms()
+
+        assert np.allclose(gnd_th_img_spacing, pred_img_spacing)
+
         print(f"gnd_th_fname: {gnd_th_fname}")
         print(f"pred_fname: {pred_fname}")
 
         _metrics = compute_measures(
-            gnd_th_img, pred_img, labels, exclude_background
+            gnd_th_img,
+            pred_img,
+            gnd_th_img_spacing,
+            labels,
+            exclude_background,
         )
 
         print("Computed metrics for participant")

@@ -106,8 +106,9 @@ def test_compute_metrics():
     ).astype(np.float32)
     labels = sorted(map(int, np.unique(image1)))
     img1 = nib.Nifti1Image(image1, affine=np.eye(4), dtype=np.float32)
+    spacing = np.array([1.0, 1.0, 1.0])
     metrics = compute_metrics(
-        img1, img1, labels, exclude_background=exclude_background
+        img1, img1, spacing, labels, exclude_background=exclude_background
     )
 
     assert metrics[0]["label"] == labels[1:]
@@ -144,7 +145,7 @@ def test_compute_metrics():
     labels = sorted(set(labels_img1).union(set(labels_img2)))
     img2 = nib.Nifti1Image(image2, affine=np.eye(4), dtype=np.float32)
     metrics = compute_metrics(
-        img1, img2, labels, exclude_background=exclude_background
+        img1, img2, spacing, labels, exclude_background=exclude_background
     )
     assert [len(vals) == len(labels[1:]) for vals in metrics[0].values()]
 
@@ -156,7 +157,7 @@ def test_compute_metrics():
     # are missing (e.g. they are missing the fastigial)
     labels = [0, 1, 2, 3, 4, 5]
     metrics = compute_metrics(
-        img1, img2, labels, exclude_background=exclude_background
+        img1, img2, spacing, labels, exclude_background=exclude_background
     )
     assert [len(vals) == len(labels[1:]) for vals in metrics[0].values()]
 
@@ -174,7 +175,7 @@ def test_compute_metrics():
     # metrics1 = compute_metrics(
     #   labels=labels1[1:], gdth_img=gdth_img, pred_img=pred_img)
     # metrics = compute_metrics(
-    #     img1, img2, labels, exclude_background=exclude_background
+    #     img1, img2, spacing, labels, exclude_background=exclude_background
     # )
 
     # assert metrics[0]["label"] == labels[1:]
@@ -196,7 +197,7 @@ def test_compute_metrics():
     # img2_fname = "/mnt/data/connectome/suit/results/cer_seg_100408.nii"
     # img2 = nib.load(img2_fname)
     # metrics = compute_metrics(
-    #     img1, img2, labels, exclude_background=exclude_background
+    #     img1, img2, spacing, labels, exclude_background=exclude_background
     # )
 
     # # assert metrics[0]["label"] == labels[1:]
