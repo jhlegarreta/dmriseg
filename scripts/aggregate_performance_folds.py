@@ -102,6 +102,9 @@ def main():
         Measure.MEAN_SURFACE_DISTANCE,
         Measure.VOLUME_ERROR,
         Measure.VOLUME_SIMILARITY,
+        Measure.GT_LABEL_PRESENCE,
+        Measure.PRED_LABEL_PRESENCE,
+        Measure.LABEL_DETECTION_RATE,
     ]
 
     ext = DelimitedValuesFileExtension.TSV
