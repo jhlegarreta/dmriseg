@@ -64,7 +64,8 @@ def create_measure_df(data, labels, sub_ids, describe=True):
     stats_df = None
     # Compute stats if requested
     if describe:
-        stats_df = df.describe()
+        with pd.option_context("mode.use_inf_as_na", True):
+            stats_df = df.describe()
 
     return df, stats_df
 
@@ -86,7 +87,7 @@ def serialize_measures(metrics, measures, labels, sub_ids, sep, out_dirname):
         if stats_df is not None:
             _basename = measure.value + underscore + stats_fname_label
             fname = Path(out_dirname).joinpath(_basename + build_suffix(ext))
-            stats_df.to_csv(fname, sep=sep)
+            stats_df.to_csv(fname, sep=sep, na_rep="NA")
 
 
 def _build_arg_parser():

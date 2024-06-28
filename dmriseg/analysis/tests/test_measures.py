@@ -22,9 +22,9 @@ def test_compute_relevant_labels():
         img_data1, img_data2, labels, exclude_background
     )
 
-    assert np.all(prsnt_labels == labels[1:])
-    assert len(msng_labels) == 0
-    assert len(msng_idx) == 0
+    assert prsnt_labels == [1, 2]
+    assert np.all(msng_labels == np.asarray([3]))
+    assert np.all(msng_idx == np.asarray([2]))
 
     img_data1 = np.array([0, 0, 2, 2, 0, 4, 4])
     img_data2 = np.array([0, 0, 2, 0, 0, 4, 0])
@@ -34,9 +34,9 @@ def test_compute_relevant_labels():
         img_data1, img_data2, labels, exclude_background
     )
 
-    assert np.all(prsnt_labels == [2, 4])
-    assert np.all(msng_labels == [1, 3])
-    assert np.all(msng_idx == [0, 2])
+    assert prsnt_labels == [2, 4]
+    assert np.all(msng_labels == np.asarray([1, 3]))
+    assert np.all(msng_idx == np.asarray([0, 2]))
 
 
 def test_fill_missing_values():
@@ -69,18 +69,18 @@ def test_fill_missing_values():
         dict(
             {
                 "label": [1, 2, 3, 4],
-                "dice": [np.nan, 0.2, np.nan, 0.22],
-                "jaccard": [np.nan, 0.4, np.nan, 0.44],
+                "dice": [0, 0.2, 0, 0.22],
+                "jaccard": [0, 0.4, 0, 0.44],
                 "precision": [np.nan, 0.6, np.nan, 0.66],
                 "recall": [np.nan, 0.8, np.nan, 0.88],
                 "fpr": [np.nan, 0.1, np.nan, 0.11],
                 "fnr": [np.nan, 0.2, np.nan, 0.22],
-                "vs": [np.nan, 0.3, np.nan, 0.33],
-                "hd": [np.nan, 0.4, np.nan, 0.44],
-                "msd": [np.nan, 0.5, np.nan, 0.55],
-                "mdsd": [np.nan, 0.6, np.nan, 0.66],
-                "stdsd": [np.nan, 0.7, np.nan, 0.77],
-                "hd95": [np.nan, 0.8, np.nan, 0.88],
+                "vs": [-2, 0.3, -2, 0.33],
+                "hd": [np.inf, 0.4, np.inf, 0.44],
+                "msd": [np.inf, 0.5, np.inf, 0.55],
+                "mdsd": [np.inf, 0.6, np.inf, 0.66],
+                "stdsd": [np.inf, 0.7, np.inf, 0.77],
+                "hd95": [np.inf, 0.8, np.inf, 0.88],
             }
         )
     ]

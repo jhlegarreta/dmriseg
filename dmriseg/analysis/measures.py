@@ -105,13 +105,57 @@ def compute_relevant_labels(img_data1, img_data2, labels, exclude_background):
             np.asarray(labels_img2)[np.asarray(labels_img2) != 0]
         )
 
-    prsnt_labels = sorted(set(labels_img1).union(set(labels_img2)))
+    prsnt_labels = sorted(set(labels_img1).intersection(set(labels_img2)))
 
     assert len(prsnt_labels) <= len(_labels)
 
     msng_idx = np.where(~np.isin(_labels, prsnt_labels))[0]
     msng_labels = np.array(_labels)[msng_idx]
     return prsnt_labels, msng_labels, msng_idx
+
+
+def get_worst_theoretical_value(measure):
+    # Since these are seg_metrics measures, we should consider FPR, FNR,
+    # precision, recall, mdsd, stdsd. These are not used in the cerebellum
+    # segmentation.
+    if measure in [Measure.DICE.value, Measure.JACCARD.value]:
+        return 0
+    elif measure in [Measure.GT_VOLUME, Measure.PRED_VOLUME.value]:
+        return 0
+    elif measure == Measure.VOLUME_ERROR.value:
+        # ToDo
+        # The sign should depend on whether the label is missing from the
+        # ground truth. Also, what if it is missing from both ?
+        return -1
+    elif measure == Measure.VOLUME_SIMILARITY.value:
+        # Negative VS means the volume of prediction is less than the volume of
+        # ground truth (underestimation). Positive VS means the volume of
+        # prediction is greater than the volume of the ground truth
+        # (overestimation).
+        # Assume here that the ground truth labelmaps always contains the label
+        # ToDo
+        # The sign should depend on whether the label is missing from the
+        # ground truth. Also, what if it is missing from both ?
+        return -2
+    elif measure in [
+        Measure.CENTER_OF_MASS_DISTANCE.value,
+        Measure.HAUSDORFF.value,
+        Measure.HAUSDORFF95.value,
+        Measure.HAUSDORFF99.value,
+        Measure.MEAN_SURFACE_DISTANCE.value,
+        "mdsd",
+        "stdsd",
+    ]:
+        # ToDo
+        # The sign should depend on whether the label is missing from the
+        # ground truth. Also, what if it is missing from both ?
+        return np.inf
+    elif measure in ["fpr", "fnr", "precision", "recall"]:
+        # ToDo
+        # Is this the appropriate value for missing labels?
+        return np.nan
+    else:
+        raise ValueError(f"Unrecognized measure: {measure}")
 
 
 def fill_missing_values(metrics, labels, msng_idx):
@@ -122,12 +166,13 @@ def fill_missing_values(metrics, labels, msng_idx):
 
     metrics_filled = copy.deepcopy(_metrics)
 
-    # Fill all with nans
+    # Fill missing labels with worst theoretical values
     for key, vals in metrics_filled.items():
         if key == "label":
             metrics_filled[key] = labels
         else:
-            metrics_filled[key] = len(labels) * [np.nan]
+            missing_val = get_worst_theoretical_value(key)
+            metrics_filled[key] = len(labels) * [missing_val]
             filled_list = metrics_filled[key]
             for value, index in zip(vals, prsnt_idx):
                 filled_list[index] = (
