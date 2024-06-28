@@ -50,7 +50,8 @@ def aggregate_data(dirnames, folds, measure, ext, sep):
     df_aggregate.sort_values(participant_label_id, inplace=True)
 
     # Compute stats
-    df_stats = df_aggregate.describe()
+    with pd.option_context("mode.use_inf_as_na", True):
+        df_stats = df_aggregate.describe()
 
     return df_aggregate, df_stats
 
@@ -101,6 +102,9 @@ def main():
         Measure.MEAN_SURFACE_DISTANCE,
         Measure.VOLUME_ERROR,
         Measure.VOLUME_SIMILARITY,
+        Measure.GT_LABEL_PRESENCE,
+        Measure.PRED_LABEL_PRESENCE,
+        Measure.LABEL_DETECTION_RATE,
     ]
 
     ext = DelimitedValuesFileExtension.TSV
