@@ -9,6 +9,7 @@ from dmriseg.analysis.measures import (
     compute_metrics,
     compute_relevant_labels,
     fill_missing_values,
+    get_label_presence,
 )
 
 
@@ -286,3 +287,29 @@ def test_compute_center_of_mass_distance():
     # assert len(cm_dist) == len(labels)
     # assert len(centers1) == len(labels)
     # assert len(centers2) == len(labels)
+
+
+def test_get_label_presence():
+
+    image = np.array(
+        [
+            [
+                [0, 1, 1, 2, 0, 2, 3],
+                [0, 1, 1, 1, 0, 2, 2],
+            ]
+        ]
+    ).astype(np.float32)
+    img = nib.Nifti1Image(image, affine=np.eye(4), dtype=np.float32)
+
+    labels = [0, 1, 2, 3]
+    exclude_background = True
+    exp_ld = [True, True, True]
+    obt_ld = get_label_presence(img, labels, exclude_background)
+
+    assert exp_ld == obt_ld
+
+    labels = [0, 1, 2, 3, 4]
+    exp_ld = [True, True, True, False]
+    obt_ld = get_label_presence(img, labels, exclude_background)
+
+    assert exp_ld == obt_ld

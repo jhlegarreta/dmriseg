@@ -21,8 +21,10 @@ import pandas as pd
 from dmriseg.analysis.measures import (
     Measure,
     compute_center_of_mass_distance,
+    compute_label_detection_rate,
     compute_metrics,
     compute_volume_error,
+    get_label_presence,
 )
 from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
@@ -50,8 +52,17 @@ def compute_measures(
         gnd_th_img, pred_img, labels
     )
 
-    _metrics["vol_err"] = list(vol_err)
-    _metrics["cm_dist"] = list(cm_dist)
+    gnd_th_ld = get_label_presence(gnd_th_img, labels, exclude_background)
+    pred_ld = get_label_presence(pred_img, labels, exclude_background)
+
+    dr = compute_label_detection_rate(gnd_th_ld, pred_ld)
+
+    _metrics[Measure.VOLUME_ERROR.value] = list(vol_err)
+    _metrics[Measure.CENTER_OF_MASS_DISTANCE.value] = list(cm_dist)
+
+    _metrics[Measure.GT_LABEL_PRESENCE.value] = list(map(int, gnd_th_ld))
+    _metrics[Measure.PRED_LABEL_PRESENCE.value] = list(map(int, pred_ld))
+    _metrics[Measure.LABEL_DETECTION_RATE.value] = dr
 
     return _metrics
 
@@ -168,6 +179,9 @@ def main():
         Measure.VOLUME_SIMILARITY,
         Measure.VOLUME_ERROR,
         Measure.CENTER_OF_MASS_DISTANCE,
+        Measure.GT_LABEL_PRESENCE,
+        Measure.PRED_LABEL_PRESENCE,
+        Measure.LABEL_DETECTION_RATE,
     ]
 
     metrics = []

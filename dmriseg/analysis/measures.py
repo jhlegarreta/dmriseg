@@ -18,10 +18,13 @@ class Measure(enum.Enum):
     HAUSDORFF99 = "hd99"
     JACCARD = "jaccard"
     MEAN_SURFACE_DISTANCE = "msd"
-    GT_VOLUME = "pred_volume"
+    GT_VOLUME = "gt_volume"
     PRED_VOLUME = "pred_volume"
     VOLUME_ERROR = "vol_err"
     VOLUME_SIMILARITY = "vs"
+    GT_LABEL_PRESENCE = "gt_lab_pres"
+    PRED_LABEL_PRESENCE = "pred_lab_pres"
+    LABEL_DETECTION_RATE = "lab_detect_rate"
 
 
 # ToDo
@@ -87,25 +90,26 @@ def compute_distance(img1, img2, sampling=1, connectivity=1):
     return msd
 
 
+def get_image_labels(img, exclude_background):
+
+    labels_img = sorted(map(int, np.unique(img)))
+
+    if exclude_background:
+        labels_img = list(np.asarray(labels_img)[np.asarray(labels_img) != 0])
+
+    return set(labels_img)
+
+
 def compute_relevant_labels(img_data1, img_data2, labels, exclude_background):
 
-    labels_img1 = sorted(map(int, np.unique(img_data1)))
-    labels_img2 = sorted(map(int, np.unique(img_data2)))
+    img1_labels = get_image_labels(img_data1, exclude_background)
+    img2_labels = get_image_labels(img_data2, exclude_background)
+
+    prsnt_labels = sorted(img1_labels.intersection(img2_labels))
 
     _labels = copy.deepcopy(labels)
-
     if exclude_background:
         _labels = list(np.asarray(labels)[np.asarray(labels) != 0])
-    if exclude_background:
-        labels_img1 = list(
-            np.asarray(labels_img1)[np.asarray(labels_img1) != 0]
-        )
-    if exclude_background:
-        labels_img2 = list(
-            np.asarray(labels_img2)[np.asarray(labels_img2) != 0]
-        )
-
-    prsnt_labels = sorted(set(labels_img1).intersection(set(labels_img2)))
 
     assert len(prsnt_labels) <= len(_labels)
 
@@ -291,3 +295,24 @@ def compute_volume_error(gt_img, pred_img, label_list):
     pred_vol = compute_labelmap_volume(pred_data, label_list, pred_res)
 
     return compute_error(gt_vol, pred_vol)
+
+
+def get_label_presence(img, labels, exclude_background):
+
+    img_data = img.get_fdata().astype(int)
+    img_labels = sorted(get_image_labels(img_data, exclude_background))
+
+    _labels = copy.deepcopy(labels)
+    if exclude_background:
+        _labels = list(np.asarray(labels)[np.asarray(labels) != 0])
+
+    assert len(img_labels) <= len(_labels)
+
+    return list(map(img_labels.__contains__, _labels))
+
+
+def compute_label_detection_rate(gt_ld, pred_ld):
+    # Assume that all labels should be present in the ground truth for our case:
+    # all cerebellar segments should be there in a healthy subject, so the
+    # detection rate will be simply the label detection of the predicted image
+    return list(map(int, pred_ld))
