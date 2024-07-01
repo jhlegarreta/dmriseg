@@ -216,6 +216,13 @@ def compute_metrics(img1, img2, spacing, labels, exclude_background=True):
         spacing=spacing,
     )
 
+    # seg_metrics <= 1.2.7 has a bug in the VS sign so reverse it
+    # https://github.com/Jingnan-Jia/segmentation_metrics/issues/30
+    # ToDo
+    # Remove when a new version is released
+    for elem in metrics:
+        elem["vs"] = list(map(lambda x: -x, elem["vs"]))
+
     # Fill in the metrics for the missing labels if any
     _metrics = copy.deepcopy(metrics)
     if len(msng_labels) != 0:
