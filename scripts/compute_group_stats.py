@@ -41,7 +41,8 @@ def compute_group_performance_statistics(
         df_subset.to_numpy().flatten(), columns=[group_name]
     )
 
-    return df_group.describe()
+    with pd.option_context("mode.use_inf_as_na", True):
+        return df_group.describe()
 
 
 def _build_arg_parser():
