@@ -49,7 +49,7 @@ else
   exit 0
 fi
 
-in_performance_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline/${contrast_folder_label}/aggregate_peformance
+in_performance_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline/${contrast_folder_label}/aggregate_performance
 out_dirname=${in_performance_root_dirname}
 
 perf_script_dirname=/home/jhlegarreta/src/dmriseg/scripts

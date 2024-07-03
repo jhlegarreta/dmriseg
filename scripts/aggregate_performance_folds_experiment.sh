@@ -48,7 +48,7 @@ fi
 
 in_fold_performance_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline
 
-out_dirname=${in_fold_performance_root_dirname}/${contrast_folder_label}/aggregate_peformance
+out_dirname=${in_fold_performance_root_dirname}/${contrast_folder_label}/aggregate_performance
 mkdir ${out_dirname}
 
 perf_script_dirname=/home/jhlegarreta/src/dmriseg/scripts
