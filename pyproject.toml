@@ -32,6 +32,7 @@ dependencies = [
     "scikit-image",
     "seaborn",
     "seg-metrics",
+    "statsmodels",
     "SUITPy",
     "torch",
     "tqdm",
