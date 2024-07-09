@@ -2,20 +2,24 @@
 # -*- coding: utf-8 -*-
 
 """
-Compute a repeated measures ANOVA analysis.
+Plot the distribution of measures for each contrast. Can be used to check
+whether the repeated measures ANOVA assumption that the dependent variable (i.e.
+the measure) is normally or approximately normally distributed.
 """
 
 import argparse
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from statsmodels.stats.anova import AnovaRM
+import seaborn as sns
 
 from dmriseg.analysis.measures import Measure
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import build_suffix, participant_label_id
 from dmriseg.stats.utils import prepare_data_for_anova
+from dmriseg.utils.contrast_utils import get_contrast_names_lut
 
 
 def _build_arg_parser():
@@ -39,7 +43,7 @@ def _build_arg_parser():
     )
     parser.add_argument(
         "--out_fname",
-        help="Output filename (*.tsv)",
+        help="Output filename (*.png)",
         type=Path,
     )
     return parser
@@ -94,17 +98,34 @@ def main():
         within_label,
     ) = prepare_data_for_anova(dfs, measure, args.contrast_names)
 
-    # Conduct the repeated measures ANOVA
-    aov = AnovaRM(
-        data=df_anova,
-        depvar=depvar_label,
-        subject=_subject_label,
-        within=within_label,
-    ).fit()
+    # Plot the data distribution
+    # width_pixels = 1920
+    # height_pixels = 1080
+    dpi = 300
+    # figsize = (width_pixels / dpi, height_pixels / dpi)
+    # plt.figure(figsize=figsize, dpi=dpi)
 
-    print(aov)
+    sns.set(style="ticks")
 
-    aov.anova_table.to_csv(args.out_fname, sep=sep)
+    g = sns.displot(
+        data=df_anova, x="dice", hue="contrast", kind="kde", palette="icefire"
+    )
+
+    plt.xlabel(measure)
+    plt.ylabel("Distribution")
+
+    # Rename the contrasts with their keys
+    contrast_names_lut = get_contrast_names_lut()
+    new_labels = contrast_names_lut.keys()
+    for t, l in zip(g._legend.texts, new_labels):
+        t.set_text(l)
+
+    # Retrieve the current figure created by displot
+    # fig = plt.gcf()
+
+    # Set the size of the figure
+    # fig.set_size_inches(figsize)
+    plt.savefig(args.out_fname, dpi=dpi)
 
 
 if __name__ == "__main__":
