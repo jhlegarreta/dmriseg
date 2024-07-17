@@ -323,3 +323,46 @@ def compute_label_detection_rate(gt_ld, pred_ld):
     # all cerebellar segments should be there in a healthy subject, so the
     # detection rate will be simply the label detection of the predicted image
     return list(map(int, pred_ld))
+
+
+def compute_label_volume_similarity(gnd_th_img, pred_img, label):
+    """Compute the volume similarity using the definition:
+
+    .. math::
+        VS = 1 - \frac{\abs{V_{pred} − V_{gdth}}}{V_{pred} + V_{gdth}}
+
+    where $V_{pred}$ is the volume of prediction and $V_{gdth}$ is the volume of
+    the ground truth. It ranges from 0 to 1. Higher value means the size
+    (volume) of the prediction is more similar (close) with the size (volume) of
+    the ground truth. Equivalently, it can be computed as:
+
+    .. math::
+        VS = 1 - \frac{\abs{FN − FP}}{2TP + FP + FN}
+    """
+
+    gnd_th_data = gnd_th_img.get_fdata()
+    pred_data = pred_img.get_fdata()
+
+    label_gnd_th_data = gnd_th_data[gnd_th_data == label]
+    label_pred_data = pred_data[pred_data == label]
+
+    # Assume both have the same spacing: it suffices to count the number of
+    # voxels on each to get the volume similarity
+    gt_vol = np.sum(label_gnd_th_data)
+    pred_vol = np.sum(label_pred_data)
+
+    return 1.0 - np.abs(pred_vol - gt_vol) / (pred_vol + gt_vol)
+
+
+def compute_volume_similarity(
+    gnd_th_img, pred_img, labels, exclude_background
+):
+
+    _labels = labels
+    if exclude_background:
+        _labels = list(np.asarray(labels)[np.asarray(labels) != 0])
+
+    return [
+        compute_label_volume_similarity(gnd_th_img, pred_img, label)
+        for label in _labels
+    ]

@@ -2,13 +2,18 @@
 # -*- coding: utf-8 -*-
 
 """
-Compute performance.
+Compute the volume similarity using the definition:
 
-Considerations:
-- The participant ids have to match the prediction and ground truth data
-filename sorting.
-- Prediction filenames and ground truth filenames have to contain the participant
-id.
+.. math::
+    VS = 1 - \frac{\abs{V_{pred} − V_{gdth}}}{V_{pred} + V_{gdth}}
+
+where $V_{pred}$ is the volume of prediction and $V_{gdth}$ is the volume of the
+ground truth. It ranges from 0 to 1. Higher value means the size (volume) of the
+prediction is more similar (close) with the size (volume) of the ground truth.
+Equivalently, it can be computed as:
+
+.. math::
+    VS = 1 - \frac{\abs{FN − FP}}{2TP + FP + FN}
 """
 
 import argparse
@@ -18,15 +23,7 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 
-from dmriseg.analysis.measures import (
-    Measure,
-    compute_center_of_mass_distance,
-    compute_label_detection_rate,
-    compute_metrics,
-    compute_volume_error,
-    compute_volume_similarity,
-    get_label_presence,
-)
+from dmriseg.analysis.measures import Measure
 from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import (
@@ -37,45 +34,30 @@ from dmriseg.io.utils import (
 )
 
 
-def compute_measures(
-    gnd_th_img, pred_img, spacing, labels, exclude_background
-):
+def compute_volume_similarity_index(gnd_th_img, pred_img, label):
 
-    _metrics = compute_metrics(
-        gnd_th_img,
-        pred_img,
-        spacing,
-        labels,
-        exclude_background=exclude_background,
-    )[0]
+    gnd_th_data = gnd_th_img.get_fdata()
+    pred_data = pred_img.get_fdata()
 
-    # Do not use the volume similarity definition used by seg-metrics
-    if Measure.VOLUME_SIMILARITY.value in _metrics:
-        del _metrics[Measure.VOLUME_SIMILARITY.value]
+    label_gnd_th_data = gnd_th_data[gnd_th_data == label]
+    label_pred_data = pred_data[pred_data == label]
 
-    vs = compute_volume_similarity(
-        gnd_th_img, pred_img, labels, exclude_background
-    )
-    _metrics[Measure.VOLUME_SIMILARITY.value] = vs
+    # Assume both have the same spacing: it suffices to count the number of
+    # voxels on each to get the volume similarity
+    gt_vol = np.sum(label_gnd_th_data)
+    pred_vol = np.sum(label_pred_data)
 
-    vol_err = compute_volume_error(gnd_th_img, pred_img, labels)
-    cm_dist, _, _ = compute_center_of_mass_distance(
-        gnd_th_img, pred_img, labels
-    )
+    return 1.0 - np.abs(pred_vol - gt_vol) / (pred_vol + gt_vol)
 
-    gnd_th_ld = get_label_presence(gnd_th_img, labels, exclude_background)
-    pred_ld = get_label_presence(pred_img, labels, exclude_background)
 
-    dr = compute_label_detection_rate(gnd_th_ld, pred_ld)
+def compute_label_volume_similarity(gnd_th_img, pred_img, labels):
 
-    _metrics[Measure.VOLUME_ERROR.value] = list(vol_err)
-    _metrics[Measure.CENTER_OF_MASS_DISTANCE.value] = list(cm_dist)
+    vs = [
+        compute_volume_similarity_index(gnd_th_img, pred_img, label)
+        for label in labels
+    ]
 
-    _metrics[Measure.GT_LABEL_PRESENCE.value] = list(map(int, gnd_th_ld))
-    _metrics[Measure.PRED_LABEL_PRESENCE.value] = list(map(int, pred_ld))
-    _metrics[Measure.LABEL_DETECTION_RATE.value] = dr
-
-    return _metrics
+    return dict({Measure.VOLUME_SIMILARITY.value: vs})
 
 
 def create_measure_df(data, labels, sub_ids, describe=True):
@@ -182,17 +164,7 @@ def main():
         labels = list(np.asarray(labels)[np.asarray(labels) != 0])
 
     measures = [
-        Measure.DICE,
-        Measure.JACCARD,
-        Measure.HAUSDORFF,
-        Measure.HAUSDORFF95,
-        Measure.MEAN_SURFACE_DISTANCE,
         Measure.VOLUME_SIMILARITY,
-        Measure.VOLUME_ERROR,
-        Measure.CENTER_OF_MASS_DISTANCE,
-        Measure.GT_LABEL_PRESENCE,
-        Measure.PRED_LABEL_PRESENCE,
-        Measure.LABEL_DETECTION_RATE,
     ]
 
     metrics = []
@@ -217,12 +189,8 @@ def main():
         print(f"gnd_th_fname: {gnd_th_fname}")
         print(f"pred_fname: {pred_fname}")
 
-        _metrics = compute_measures(
-            gnd_th_img,
-            pred_img,
-            gnd_th_img_spacing,
-            labels,
-            exclude_background,
+        _metrics = compute_label_volume_similarity(
+            gnd_th_img, pred_img, labels
         )
 
         print("Computed metrics for participant")
