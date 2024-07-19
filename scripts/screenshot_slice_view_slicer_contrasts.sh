@@ -10,7 +10,7 @@ out_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline/plots/fi
 in_color_lut_fname=/mnt/data/lut/suit_diedrichsen_lut0255_nuclei_colored_slicer.txt
 
 view_name="coronal"
-offset=-46  #-51.2  # Adjust as necessary
+offset=-52.2  #-51.2  # Adjust as necessary
 
 # Get the best participant name
 _sub_id=117021  # Adjust as necessary
@@ -86,6 +86,9 @@ else
   echo "Aborting."
   exit 0
 fi
+
+# Create the output folder if it does not exist
+mkdir ${out_root_dirname}/${out_folder_label}
 
 # Screenshot the ground truth segmentation on the T1 (as it was originally computed on the T1)
 gnd_th_bckgnd_contrast_label=t1_resized
