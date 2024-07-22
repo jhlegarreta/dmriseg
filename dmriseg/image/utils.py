@@ -7,6 +7,7 @@ import nibabel as nib
 import numpy as np
 import torch
 from dipy.io.utils import is_header_compatible
+from PIL import Image
 from scipy.ndimage import distance_transform_edt as eucl_distance
 from torch.nn.functional import one_hot
 
@@ -92,9 +93,9 @@ def extract_roi_from_image(img, idx_mask):
     return roi_img
 
 
-def extract_roi_from_label_image(img, label):
+def extract_roi_from_label_image(img, labels):
     img_data = img.get_fdata()
-    idx_mask = img_data == label
+    idx_mask = np.isin(img_data, labels)
     roi_img = extract_roi_from_image(img, idx_mask)
     return roi_img
 
@@ -183,3 +184,29 @@ def compute_distance_transform_map(labelmap, labels):
             dtm[..., j] = dtm_j.numpy()
 
     return dtm
+
+
+# ToDo
+# This and visualization.scene_utils.create_mask_from_scene should be merged
+def create_mask_from_rgb_array(img_array, background):
+    return (
+        (img_array[:, :, 0] != background)
+        & (img_array[:, :, 1] != background)
+        & (img_array[:, :, 2] != background)
+    )
+
+
+# ToDo
+# This and visualization.scene_utils.create_mask_from_scene should be merged
+def create_masked_image_from_array(img_array, background):
+
+    _bckgnd_mask = create_mask_from_rgb_array(img_array, background)
+
+    # Transform the boolean mask to the [0, 255] range and convert to uint8 for
+    # Pillow
+    bckgnd_mask = (_bckgnd_mask * 255).astype(np.uint8)
+    mask_img = Image.fromarray(bckgnd_mask)
+    img = Image.fromarray(img_array, mode="RGB")
+    img.putalpha(mask_img)
+
+    return img

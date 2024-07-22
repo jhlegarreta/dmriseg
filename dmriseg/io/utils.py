@@ -22,6 +22,7 @@ from dmriseg.io.study_description import SubjectData
 
 checkpoint_file_rootname = "model"
 fold_label = "fold"
+legend_label = "legend"
 participant_label_id = "ID"
 group_fname_label = "group"
 stats_fname_label = "stats"
@@ -273,3 +274,12 @@ def read_image_data_as_label_map(fname, dtype=np.uint16):
             f"The requested datatype {dtype} is not compatible with a label "
             f"image type. Allowed types are: {allowed_label_types}."
         )
+
+
+def append_label_to_fname(fname, label):
+
+    dirname = fname.parent
+    file_rootname = fname.stem
+    suffix = fname.suffix
+    file_basename = Path(file_rootname + underscore + label + suffix)
+    return dirname / file_basename

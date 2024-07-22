@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import io
+
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import BoundaryNorm, ListedColormap
+from PIL import Image
 
 
 def get_label_cmap(n_labels):
@@ -185,3 +189,75 @@ def show_mplt_colormap(colormap, figsize=(15, 3)):
     plt.yticks([])
 
     return fig
+
+
+def create_mpl_legend(colors, labels, figsize, dpi):
+
+    handles = [mpatches.Patch(color=color) for color in colors]
+
+    # legend = plt.legend(handles, labels, loc="center", framealpha=1, frameon=False)
+    # plt.tight_layout()
+
+    # Convert figsize to inches
+    _figsize = (figsize[0] / dpi, figsize[1] / dpi)
+
+    fig = plt.figure(figsize=_figsize, dpi=dpi)
+    legend = fig.legend(
+        handles, labels, loc="center", framealpha=1, frameon=False
+    )
+    fig.tight_layout()
+
+    return legend
+
+
+def create_img_from_mpl_legend(legend, dpi):
+
+    fig = legend.figure
+    fig.canvas.draw()
+    bbox = legend.get_window_extent().transformed(
+        fig.dpi_scale_trans.inverted()
+    )
+
+    io_buf = io.BytesIO()
+    fig.savefig(
+        io_buf, format="png", dpi=dpi, bbox_inches=bbox, transparent=True
+    )
+    # Delete the legend along with its temporary figure
+    plt.close(fig)
+
+    return Image.open(io_buf)
+
+
+def rescale_image_keep_aspect(image, canvas_size):
+
+    canvas_width, canvas_height = canvas_size
+    original_width, original_height = image.size
+
+    # Calculate the scaling factor to fit the image within the canvas
+    width_ratio = canvas_width / original_width
+    height_ratio = canvas_height / original_height
+    scaling_factor = min(width_ratio, height_ratio)
+
+    # Calculate new size based on the scaling factor
+    new_width = int(original_width * scaling_factor)
+    new_height = int(original_height * scaling_factor)
+
+    # Rescale image
+    rescaled_image = image.resize((new_width, new_height), Image.LANCZOS)
+
+    return rescaled_image
+
+
+def paste_image_into_canvas(image, canvas_size):
+
+    # Create a new canvas
+    canvas = Image.new("RGBA", canvas_size, (255, 255, 255, 0))
+
+    # Calculate the position to paste the image to center it
+    x_offset = (canvas_size[0] - image.size[0]) // 2
+    y_offset = (canvas_size[1] - image.size[1]) // 2
+
+    # Paste rescaled image onto the canvas
+    canvas.paste(image, (x_offset, y_offset))
+
+    return canvas
