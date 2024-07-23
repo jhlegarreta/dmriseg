@@ -38,6 +38,7 @@ def plot_contour(
     label_imgs,
     labels,
     colors,
+    origin=None,
     opacity=0.7,
     linewidth=4.5,
     background=window.colors.white,
@@ -54,7 +55,8 @@ def plot_contour(
     ]
 
     normal = (0, 0, 1)
-    origin = ndimage.center_of_mass(ref_anat_img.get_fdata())
+    if origin is None:
+        origin = ndimage.center_of_mass(ref_anat_img.get_fdata())
 
     clip_plane = vtk.vtkPlane()
     clip_plane.SetNormal(normal)
@@ -125,6 +127,12 @@ def _build_arg_parser():
         type=str,
     )
     parser.add_argument(
+        "--origin",
+        help="Origin for the clipping plane",
+        nargs="+",
+        type=int,
+    )
+    parser.add_argument(
         "--cmap_name", help="Colormap name", type=str, default="Greys"
     )
     parser.add_argument(
@@ -183,6 +191,7 @@ def main():
         label_imgs,
         args.labels,
         colors,
+        origin=args.origin,
         opacity=opacity,
         linewidth=linewidth,
         background=background,
