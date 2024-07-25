@@ -9,8 +9,12 @@ out_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline/plots/fi
 
 in_color_lut_fname=/mnt/data/lut/suit_diedrichsen_lut0255_nuclei_colored_slicer.txt
 
-view_name="coronal"
-offset=-52.2  #-51.2  # Adjust as necessary
+view_name="axial"
+offset=-25.7  # Adjust as necessary
+#view_name="coronal"
+#offset=-52.2  #-51.2
+view_name="sagittal"
+offset=-6.2
 
 # Get the best participant name
 _sub_id=117021  # Adjust as necessary
@@ -92,8 +96,9 @@ mkdir ${out_root_dirname}/${out_folder_label}
 
 # Screenshot the ground truth segmentation on the T1 (as it was originally computed on the T1)
 gnd_th_bckgnd_contrast_label=t1_resized
+in_gnd_th_folder_label=dmri_hcp_t1
 out_gnd_th_folder_label=dmri_hcp_t1
-in_vol_gnd_th_bckgnd_fname=${in_root_dirname}/${_sub_id}/${in_folder_label}/volume/${_sub_id}__${gnd_th_bckgnd_contrast_label}_brainmasked_cropped.nii.gz
+in_vol_gnd_th_bckgnd_fname=${in_root_dirname}/${_sub_id}/${in_gnd_th_folder_label}/volume/${_sub_id}__${gnd_th_bckgnd_contrast_label}_brainmasked_cropped.nii.gz
 in_gnd_th_seg_fname=${in_root_dirname}/${_sub_id}/labelmap/${_sub_id}__cer_seg_resized_cropped.nii.gz
 
 in_mask_fname=${in_root_dirname}/${_sub_id}/brainmask/${_sub_id}__brainmask_resized_cropped.nii.gz

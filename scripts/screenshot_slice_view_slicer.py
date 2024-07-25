@@ -31,16 +31,24 @@ def append_label_to_fname(fname, label):
 
 def get_slice_view_node_label(view_name):
 
-    if view_name == "coronal":
+    if view_name == "axial":
+        return "Red"
+    elif view_name == "coronal":
         return "Green"
+    elif view_name == "sagittal":
+        return "Yellow"
     else:
         raise NotImplementedError(f"View {view_name} not implemented")
 
 
 def set_layout(view_name):
 
-    if view_name == "coronal":
+    if view_name == "axial":
+        layout_name = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpRedSliceView
+    elif view_name == "coronal":
         layout_name = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpGreenSliceView
+    elif view_name == "sagittal":
+        layout_name = slicer.vtkMRMLLayoutNode.SlicerLayoutOneUpYellowSliceView
     else:
         raise NotImplementedError(f"View {view_name} not implemented")
 
