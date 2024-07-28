@@ -584,3 +584,29 @@ def get_diedrichsen_group_labels(group_name):
         return list(range(1, 35))
     else:
         raise NotImplementedError(f"{group_name} not implemented")
+
+
+def rename_suit_atlas_diedrichsen_groups_plot_labels(group_name):
+
+    if group_name == SuitAtlasDiedrichsenGroups.ALL.value:
+        return "All"
+    elif group_name == SuitAtlasDiedrichsenGroups.CRUS.value:
+        return "Crus"
+    elif group_name == SuitAtlasDiedrichsenGroups.DCN.value:
+        return "DCN"
+    elif group_name == SuitAtlasDiedrichsenGroups.DENTATE.value:
+        return "Dentate"
+    elif group_name == SuitAtlasDiedrichsenGroups.FASTIGIAL.value:
+        return "Fastigial"
+    elif group_name == SuitAtlasDiedrichsenGroups.INTERPOSED.value:
+        return "Interposed"
+    elif group_name == SuitAtlasDiedrichsenGroups.LH.value:
+        return "Lh"
+    elif group_name == SuitAtlasDiedrichsenGroups.LOBULES.value:
+        return "Lobules"
+    elif group_name == SuitAtlasDiedrichsenGroups.VERMIS.value:
+        return "Vermis"
+    elif group_name == SuitAtlasDiedrichsenGroups.RH.value:
+        return "Rh"
+    else:
+        raise NotImplementedError(f"Group not recognized: {group_name}")

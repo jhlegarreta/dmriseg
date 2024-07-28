@@ -366,3 +366,37 @@ def compute_volume_similarity(
         compute_label_volume_similarity(gnd_th_img, pred_img, label)
         for label in _labels
     ]
+
+
+def rename_measure_names_plot_labels(meaure_name):
+
+    if meaure_name == Measure.CENTER_OF_MASS_DISTANCE.value:
+        return "CM dist"
+    elif meaure_name == Measure.DICE.value:
+        return "DSC"
+    elif meaure_name == Measure.HAUSDORFF.value:
+        return "HD"
+    elif meaure_name == Measure.HAUSDORFF95.value:
+        return "HD95"
+    elif meaure_name == Measure.HAUSDORFF99.value:
+        return "HD99"
+    elif meaure_name == Measure.JACCARD.value:
+        return "Jacc"
+    elif meaure_name == Measure.MEAN_SURFACE_DISTANCE.value:
+        return "MSD"
+    elif meaure_name == Measure.GT_VOLUME.value:
+        return "Ground truth vol"
+    elif meaure_name == Measure.PRED_VOLUME.value:
+        return "Pred vol"
+    elif meaure_name == Measure.VOLUME_ERROR.value:
+        return "Vol err"
+    elif meaure_name == Measure.VOLUME_SIMILARITY.value:
+        return "VS"
+    elif meaure_name == Measure.GT_LABEL_PRESENCE.value:
+        return "Ground truth lab pres"
+    elif meaure_name == Measure.PRED_LABEL_PRESENCE.value:
+        return "Pred lab pres"
+    elif meaure_name == Measure.LABEL_DETECTION_RATE.value:
+        return "LDR"
+    else:
+        raise NotImplementedError(f"Group not recognized: {meaure_name}")

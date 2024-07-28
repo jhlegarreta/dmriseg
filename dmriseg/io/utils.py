@@ -21,6 +21,7 @@ from dmriseg.io.file_extensions import (
 from dmriseg.io.study_description import SubjectData
 
 checkpoint_file_rootname = "model"
+contrast_label = "contrast"
 fold_label = "fold"
 legend_label = "legend"
 participant_label_id = "ID"

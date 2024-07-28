@@ -39,3 +39,4 @@ class PyTorchCheckpointFileExtension(enum.Enum):
 
 class FigureFileExtension(enum.Enum):
     PNG = "png"
+    SVG = "svg"

@@ -78,3 +78,39 @@ def get_contrast_from_dir_base(dirname):
         return ContrastNames.RK.value
     else:
         raise NotImplementedError(f"Dirname not recognized: {dirname}")
+
+
+def rename_contrasts_plot_labels(contrast):
+
+    if contrast == ContrastNames.T1.value:
+        return "T1w"
+    elif contrast == ContrastNames.B0.value:
+        return "B0"
+    elif contrast == ContrastNames.DWI.value:
+        return "SM"
+    elif contrast == ContrastNames.DWI1k.value:
+        return "SM1k"
+    elif contrast == ContrastNames.DWI2k.value:
+        return "SM2k"
+    elif contrast == ContrastNames.DWI3k.value:
+        return "SM3k"
+    elif contrast == ContrastNames.FA.value:
+        return "FA"
+    elif contrast == ContrastNames.MD.value:
+        return "MD"
+    elif contrast == ContrastNames.RD.value:
+        return "RD"
+    elif contrast == ContrastNames.EVALS_E1.value:
+        return "E1"
+    elif contrast == ContrastNames.EVALS_E2.value:
+        return "E2"
+    elif contrast == ContrastNames.EVALS_E3.value:
+        return "E3"
+    elif contrast == ContrastNames.AK.value:
+        return "AK"
+    elif contrast == ContrastNames.MK.value:
+        return "MK"
+    elif contrast == ContrastNames.RK.value:
+        return "RK"
+    else:
+        raise NotImplementedError(f"Contrast not recognized: {contrast}")
