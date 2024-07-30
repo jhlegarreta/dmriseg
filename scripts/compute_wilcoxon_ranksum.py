@@ -3,8 +3,8 @@
 
 """
 Compute statistical significance between the performance of two contrast methods
-using the Wilcoxon rank-sum statistic. Assumes the first given contrast is the
-reference against which the statistic is computed (x for scipy.stats.ranksums).
+using the Wilcoxon rank-sum hypothesis test. Assumes the first given contrast is
+the reference against which the test is performed (x for scipy.stats.ranksums).
 """
 
 import argparse
