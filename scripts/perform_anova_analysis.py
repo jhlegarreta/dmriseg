@@ -15,7 +15,7 @@ from statsmodels.stats.anova import AnovaRM
 from dmriseg.analysis.measures import Measure
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import build_suffix, participant_label_id
-from dmriseg.stats.utils import prepare_data_for_anova
+from dmriseg.utils.stat_preparation_utils import prepare_data_for_anova
 
 
 def _build_arg_parser():

@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import pandas as pd
 
-from dmriseg.data.lut.utils import class_name_label
+from dmriseg.data.lut.utils import (
+    SuitAtlasDiedrichsenGroups,
+    class_name_label,
+    get_diedrichsen_group_labels,
+)
 from dmriseg.io.utils import participant_label_id as _participant_label_id
+from dmriseg.utils.contrast_utils import get_contrast_names_lut
 
 participant_label_id = "participant_id"
 class_id_label = "label_id"
@@ -22,6 +28,8 @@ test_description_label = "test_description"
 test_short_name_label = "test_short_name"
 stat_str_label = "stat_str"
 alternative_label = "alternative"
+
+subject_label = "subject"
 
 
 def create_pairs(ref_contrast_name, contrast_name, labels):
@@ -94,6 +102,46 @@ def create_df(
     return pd.concat(
         [df_metric_ref_melted, df_metric_melted], axis=0
     ).reset_index(drop=True)
+
+
+def prepare_data_for_anova(dfs, measure, contrast_names):
+
+    contrast_names_lut = get_contrast_names_lut()
+
+    suit_labels = get_diedrichsen_group_labels(
+        SuitAtlasDiedrichsenGroups.ALL.value
+    )
+
+    # Compute the mean across all labels for each participant/contrast
+    columns_of_interest = list(map(str, suit_labels))
+
+    measure_prtcpnt_mean = np.hstack(
+        [df[columns_of_interest].mean(axis=1).values for df in dfs]
+    )
+
+    # Create the values for the participant (subject for AnovaRM) and contrast
+    # (within for AnovaRM) columns
+    participant_ids = np.hstack([df.index.to_numpy() for df in dfs])
+    contrast = np.hstack(
+        [
+            len(df.index) * [contrast_names_lut[contrast_name]]
+            for df, contrast_name in zip(dfs, contrast_names)
+        ]
+    )
+
+    depvar_label = measure
+    _subject_label = subject_label
+    within_label = [contrast_label]
+
+    df_anova = pd.DataFrame(
+        {
+            _subject_label: participant_ids,
+            contrast_label: contrast,
+            depvar_label: measure_prtcpnt_mean,
+        }
+    )
+
+    return df_anova, depvar_label, _subject_label, within_label
 
 
 def describe_wilcoxon_ranksum(alternative=None):
