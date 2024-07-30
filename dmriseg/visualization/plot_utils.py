@@ -8,6 +8,8 @@ import numpy as np
 from matplotlib.colors import BoundaryNorm, ListedColormap
 from PIL import Image
 
+from dmriseg.analysis.measures import Measure
+
 
 def get_label_cmap(n_labels):
     """Get matplotlib colour map for a label map."""
@@ -228,6 +230,26 @@ def create_img_from_mpl_legend(legend, dpi):
     return Image.open(io_buf)
 
 
+def create_mpl_fig_from_legend_props(**legend_props):
+
+    fig = plt.figure()
+    ax_legend = fig.add_subplot(111)
+
+    legend_props["loc"] = "center"
+    legend_props["bbox_to_anchor"] = (0.5, 0.5)
+
+    # Reuse the existing legend
+    _legend = ax_legend.legend(**legend_props)
+    ax_legend.axis("off")
+    bbox = _legend.get_window_extent(renderer=fig.canvas.get_renderer())
+    bbox_data = bbox.transformed(fig.dpi_scale_trans.inverted())
+    fig.set_figheight(bbox_data.height)
+    fig.set_figwidth(bbox_data.width)
+    fig.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
+    return fig
+
+
 def rescale_image_keep_aspect(image, canvas_size):
 
     canvas_width, canvas_height = canvas_size
@@ -261,3 +283,21 @@ def paste_image_into_canvas(image, canvas_size):
     canvas.paste(image, (x_offset, y_offset))
 
     return canvas
+
+
+def mplfig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
+
+
+def get_plot_ylim(measure_name):
+
+    if measure_name == Measure.DICE.value:
+        return [-0.05, 1.05]  # Allow some room for the violin cut
+    else:
+        raise NotImplementedError(f"Measure {measure_name} not implemented.")
