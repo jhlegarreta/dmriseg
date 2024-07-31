@@ -257,7 +257,7 @@ def plot_grouped_violin(
     ncols = 1
     borderaxespad = 0.0
     title = None
-    frameon = True
+    frameon = False
 
     if bottom_legend:
         loc = "upper center"
