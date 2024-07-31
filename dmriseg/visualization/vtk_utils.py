@@ -6,7 +6,7 @@ import vtk
 from fury.utils import set_input
 from vtk.util import numpy_support
 
-from dmriseg.visualization.utils import compute_plane_normal
+from dmriseg.visualization.utils import AnatomicalView, compute_plane_normal
 
 
 def build_vtk_transform_from_np_affine(affine):
@@ -201,11 +201,13 @@ def smooth_polydata2(poly, iterations=15, feature_angle=120, pass_band=0.001):
     return smoother.GetOutput()
 
 
-def extract_polydata_from_image_data(vtk_image_data):
+def extract_polydata_from_image_data(
+    vtk_image_data, lower_threshold, upper_threshold
+):
 
     threshold = vtk.vtkImageThreshold()
     threshold.SetInputData(vtk_image_data)
-    threshold.ThresholdBetween(1, 1)
+    threshold.ThresholdBetween(lower_threshold, upper_threshold)
     threshold.ReplaceInOn()
     threshold.SetInValue(0)
     threshold.ReplaceOutOn()
@@ -218,3 +220,150 @@ def extract_polydata_from_image_data(vtk_image_data):
     dmc.Update()
 
     return dmc.GetOutput()
+
+
+def create_vtk_actor_from_label(labelmap, label, color):
+
+    # Extract the corresponding polydata and smooth it
+    polydata = extract_polydata_from_image_data(labelmap, label, label)
+    smoothed_polydata = smooth_polydata(polydata, 50)
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputData(smoothed_polydata)
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+    actor.GetProperty().SetColor(color)
+    # If a data set has scalars, then vtkMapper will display the scalars and
+    # ignore the property color. The VTK contour and clip filters create
+    # scalars, so it is necessary to use SetScalarVisibilityOff() to display
+    # their output with a solid color.
+    mapper.ScalarVisibilityOff()
+
+    return actor
+
+
+def render_labelmap_to_vtk(labelmap, colors, anatomical_view, size):
+
+    ren_win = vtk.vtkRenderWindow()
+    ren_win.SetSize(size[0], size[1])
+
+    renderer = vtk.vtkRenderer()
+
+    # Loop over each label
+    for label, color in colors.items():
+        actor = create_vtk_actor_from_label(labelmap, label, color)
+        renderer.AddActor(actor)
+
+    # renderer.SetBackground(0.0, 0.0, 0.0)  # black
+    renderer.SetBackground(1.0, 1.0, 1.0)  # white
+
+    # Set the camera view
+    set_camera_view(renderer, anatomical_view)
+
+    ren_win.AddRenderer(renderer)
+
+    return ren_win
+
+
+def slice_vtk_image(image):
+
+    size = image.GetDimensions()
+    center = image.GetCenter()
+    spacing = image.GetSpacing()
+    center1 = (center[0], center[1], center[2])
+    if size[2] % 2 == 1:
+        center1 = (center[0], center[1], center[2] + 0.5 * spacing[2])
+    # if size[0] % 2 == 1:
+    #    center2 = (center[0] + 0.5*spacing[0], center[1], center[2])
+    vrange = image.GetScalarRange()
+
+    mapper = vtk.vtkImageSliceMapper()
+    mapper.BorderOn()
+    mapper.SliceAtFocalPointOn()
+    mapper.SliceFacesCameraOn()
+    mapper.SetInputData(image)
+
+    vtk_img_slice = vtk.vtkImageSlice()
+    vtk_img_slice.SetMapper(mapper)
+    vtk_img_slice.GetProperty().SetColorWindow(vrange[1] - vrange[0])
+    vtk_img_slice.GetProperty().SetColorLevel(0.5 * (vrange[0] + vrange[1]))
+
+    return vtk_img_slice, center1
+
+
+def render_anat_labelmap_to_vtk(anat_img, labelmap, colors, window_size):
+
+    ren_win = vtk.vtkRenderWindow()
+    ren_win.SetSize(window_size[0], window_size[1])
+
+    renderer = vtk.vtkRenderer()
+
+    img_size = anat_img.GetDimensions()
+    spacing = anat_img.GetSpacing()
+    vtk_img_slice, center1 = slice_vtk_image(anat_img)
+    renderer.AddViewProp(vtk_img_slice)
+
+    # Loop over each label
+    for label, color in colors.items():
+        actor = create_vtk_actor_from_label(labelmap, label, color)
+        renderer.AddActor(actor)
+
+    cam = renderer.GetActiveCamera()
+    cam.ParallelProjectionOn()
+    cam.SetParallelScale(0.5 * spacing[1] * img_size[1])
+    cam.SetFocalPoint(center1[0], center1[1], center1[2] + 50)
+    cam.SetPosition(center1[0], center1[1], center1[2])
+
+    # renderer.SetBackground(0.0, 0.0, 0.0)  # black
+    renderer.SetBackground(1.0, 1.0, 1.0)  # white
+
+    ren_win.AddRenderer(renderer)
+
+    return ren_win
+
+
+def set_camera_view(renderer, anatomical_view):
+    camera = renderer.GetActiveCamera()
+    if anatomical_view == AnatomicalView.AXIAL_SUPERIOR.value:
+        camera.SetPosition(0, 0, 1)
+        camera.SetViewUp(0, 1, 0)
+    elif anatomical_view == AnatomicalView.AXIAL_INFERIOR.value:
+        camera.SetPosition(0, 0, -1)
+        camera.SetViewUp(0, -1, 0)
+    elif anatomical_view == AnatomicalView.CORONAL_ANTERIOR.value:
+        camera.SetPosition(0, 1, 0)
+        camera.SetViewUp(0, 0, 1)
+    elif anatomical_view == AnatomicalView.CORONAL_POSTERIOR.value:
+        camera.SetPosition(0, -1, 0)
+        camera.SetViewUp(0, 0, 1)
+    elif anatomical_view == AnatomicalView.SAGITTAL_LEFT.value:
+        camera.SetPosition(-1, 0, 0)
+        camera.SetViewUp(0, 0, 1)
+    elif anatomical_view == AnatomicalView.SAGITTAL_RIGHT.value:
+        camera.SetPosition(1, 0, 0)
+        camera.SetViewUp(0, 0, 1)
+    else:
+        raise ValueError(
+            f"Camera view must be one of {AnatomicalView.__members__.values()}; {anatomical_view} provided"
+        )
+
+    camera.SetFocalPoint(0, 0, 0)  # Look at the center
+    renderer.ResetCamera()
+
+
+def capture_vtk_render_window(ren_win):
+
+    window_to_image_filter = vtk.vtkWindowToImageFilter()
+    window_to_image_filter.SetInput(ren_win)
+    window_to_image_filter.SetScale(1)  # Ensure no scaling
+    window_to_image_filter.Update()
+
+    return window_to_image_filter.GetOutput()
+
+
+def save_vtk_image(image_data, filename):
+    writer = vtk.vtkPNGWriter()
+    writer.SetFileName(filename)
+    writer.SetInputData(image_data)
+    writer.Write()
