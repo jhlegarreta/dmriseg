@@ -63,7 +63,11 @@ def test_contour_from_roi():
     mask_reader.SetFileName(mask_fname)
     mask_reader.Update()
     vtk_image_data = mask_reader.GetOutput()
-    polydata = extract_polydata_from_image_data(vtk_image_data)
+    lower_threshold = 1
+    upper_threshold = 1
+    polydata = extract_polydata_from_image_data(
+        vtk_image_data, lower_threshold, upper_threshold
+    )
 
     smoothed_polydata = smooth_polydata(polydata, 50)
     surface_actor = utils.get_actor_from_polydata(smoothed_polydata)
