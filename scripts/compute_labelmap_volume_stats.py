@@ -80,7 +80,7 @@ def main():
 
     df_lut = pd.read_csv(args.in_labels_fname, sep=sep)
     # Remove the background
-    labels = df_lut[lut_class_id_label].values[1:10]  # [1:]
+    labels = df_lut[lut_class_id_label].values[1:]
 
     participant_ids = pd.read_csv(args.in_participants_fname, sep=sep)[
         participant_label_id
@@ -89,7 +89,7 @@ def main():
     df = pd.DataFrame()
 
     # Loop over participants
-    for _id in participant_ids[:15]:
+    for _id in participant_ids:
 
         # Retrieve the labelmap file
         path = args.in_gnd_th_labelmap_dirname / str(_id) / labelmap_dir_label
