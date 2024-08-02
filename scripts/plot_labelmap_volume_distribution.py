@@ -171,7 +171,7 @@ def main():
         SuitAtlasDiedrichsenGroups.CRUS,
     ]
 
-    suffix = build_suffix(FigureFileExtension.PNG)
+    suffix = build_suffix(FigureFileExtension.SVG)
 
     for group in group_names:
         # Keep only the labels corresponding to the group
