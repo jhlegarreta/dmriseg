@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Plot a labelmap as a set of 3D volumes.
+Plot a labelmap as a set of 3D volumes. Can display a subset of the labels
+depending on the input arguments; displays all labels if none specified.
 """
 
 import argparse
@@ -11,7 +12,11 @@ from pathlib import Path
 import numpy as np
 import vtk
 
-from dmriseg.data.lut.utils import read_lut_from_tsv2
+from dmriseg.data.lut.utils import (
+    SuitAtlasDiedrichsenGroups,
+    get_diedrichsen_group_labels,
+    read_lut_from_tsv2,
+)
 from dmriseg.visualization.vtk_utils import (
     capture_vtk_render_window,
     render_labelmap_to_vtk,
@@ -52,6 +57,18 @@ def _build_arg_parser():
         help="Anatomical type",
         type=str,
     )
+    labels_group = parser.add_mutually_exclusive_group(required=False)
+    labels_group.add_argument(
+        "--group_name",
+        help="SUIT label groups to be considered",
+        type=str,
+    )
+    labels_group.add_argument(
+        "--labels",
+        help="SUIT labels to be considered",
+        type=int,
+        nargs="+",
+    )
     return parser
 
 
@@ -75,10 +92,24 @@ def main():
     labelmap = nifti_reader.GetOutput()
 
     lut = read_lut_from_tsv2(args.in_labels_fname)
-    # Remove the background
-    del lut[0]
+
+    # Get the labels to be displayed
+    if args.group_name is None and args.labels is None:
+        # Display all labels
+        group_name = SuitAtlasDiedrichsenGroups.ALL.value
+        _labels = get_diedrichsen_group_labels(group_name)
+    elif args.group_name is not None:
+        _labels = get_diedrichsen_group_labels(args.group_name)
+    elif args.labels is not None:
+        _labels = args.labels
+    else:
+        raise ValueError("At least one label is required.")
+
+    # Removes the background as well
+    _lut = {k: v for k, v in lut.items() if k in _labels}
+
     # Normalize colors
-    normalized_colors = normalize_colors(lut)
+    normalized_colors = normalize_colors(_lut)
 
     size = (1920, 1080)
     ren_win = render_labelmap_to_vtk(
