@@ -243,29 +243,6 @@ def create_vtk_actor_from_label(labelmap, label, color):
     return actor
 
 
-def render_labelmap_to_vtk(labelmap, colors, anatomical_view, size):
-
-    ren_win = vtk.vtkRenderWindow()
-    ren_win.SetSize(size[0], size[1])
-
-    renderer = vtk.vtkRenderer()
-
-    # Loop over each label
-    for label, color in colors.items():
-        actor = create_vtk_actor_from_label(labelmap, label, color)
-        renderer.AddActor(actor)
-
-    # renderer.SetBackground(0.0, 0.0, 0.0)  # black
-    renderer.SetBackground(1.0, 1.0, 1.0)  # white
-
-    # Set the camera view
-    set_camera_view(renderer, anatomical_view)
-
-    ren_win.AddRenderer(renderer)
-
-    return ren_win
-
-
 def slice_vtk_image(image):
 
     size = image.GetDimensions()
@@ -292,31 +269,52 @@ def slice_vtk_image(image):
     return vtk_img_slice, center1
 
 
-def render_anat_labelmap_to_vtk(anat_img, labelmap, colors, window_size):
+def render_labelmap_to_vtk(
+    labelmap, colors, anatomical_view, window_size, anat_img=None
+):
 
     ren_win = vtk.vtkRenderWindow()
     ren_win.SetSize(window_size[0], window_size[1])
 
     renderer = vtk.vtkRenderer()
 
-    img_size = anat_img.GetDimensions()
-    spacing = anat_img.GetSpacing()
-    vtk_img_slice, center1 = slice_vtk_image(anat_img)
-    renderer.AddViewProp(vtk_img_slice)
+    if anat_img:
+        img_size = anat_img.GetDimensions()
+        spacing = anat_img.GetSpacing()
+        vtk_img_slice, center1 = slice_vtk_image(anat_img)
+        renderer.AddViewProp(vtk_img_slice)
 
     # Loop over each label
     for label, color in colors.items():
         actor = create_vtk_actor_from_label(labelmap, label, color)
         renderer.AddActor(actor)
 
-    cam = renderer.GetActiveCamera()
-    cam.ParallelProjectionOn()
-    cam.SetParallelScale(0.5 * spacing[1] * img_size[1])
-    cam.SetFocalPoint(center1[0], center1[1], center1[2] + 50)
-    cam.SetPosition(center1[0], center1[1], center1[2])
+    if anat_img:
+        cam = renderer.GetActiveCamera()
+        cam.ParallelProjectionOn()
+        cam.SetParallelScale(0.5 * spacing[1] * img_size[1])
+        cam.SetFocalPoint(center1[0], center1[1], center1[2] + 50)
+        cam.SetPosition(center1[0], center1[1], center1[2])
 
     # renderer.SetBackground(0.0, 0.0, 0.0)  # black
     renderer.SetBackground(1.0, 1.0, 1.0)  # white
+
+    # Set the camera view
+    if anat_img is None:
+        set_camera_view(renderer, anatomical_view)
+    else:
+        # ToDo
+        # When the camera view setting method is called here, all three views
+        # (axial, coronal, sagittal) do not cover the entire height/width of the
+        # canvas.
+        # ToDo
+        # Depending the cutting plane, the slice actor may hide the the label
+        # actors, so we would need to
+        # - Specify the cutting plane.
+        # - Perform an orthographic projection so that the plane is sent to the
+        # background while keeping its size.
+        # set_camera_view(renderer, anatomical_view)
+        pass
 
     ren_win.AddRenderer(renderer)
 
@@ -326,23 +324,23 @@ def render_anat_labelmap_to_vtk(anat_img, labelmap, colors, window_size):
 def set_camera_view(renderer, anatomical_view):
     camera = renderer.GetActiveCamera()
     if anatomical_view == AnatomicalView.AXIAL_SUPERIOR.value:
-        camera.SetPosition(0, 0, 1)
+        camera.SetPosition(0, 0, -1)
         camera.SetViewUp(0, 1, 0)
     elif anatomical_view == AnatomicalView.AXIAL_INFERIOR.value:
-        camera.SetPosition(0, 0, -1)
-        camera.SetViewUp(0, -1, 0)
+        camera.SetPosition(0, 0, 1)
+        camera.SetViewUp(0, 1, 0)
     elif anatomical_view == AnatomicalView.CORONAL_ANTERIOR.value:
         camera.SetPosition(0, 1, 0)
-        camera.SetViewUp(0, 0, 1)
+        camera.SetViewUp(0, 0, -1)
     elif anatomical_view == AnatomicalView.CORONAL_POSTERIOR.value:
         camera.SetPosition(0, -1, 0)
-        camera.SetViewUp(0, 0, 1)
+        camera.SetViewUp(0, 0, -1)
     elif anatomical_view == AnatomicalView.SAGITTAL_LEFT.value:
-        camera.SetPosition(-1, 0, 0)
-        camera.SetViewUp(0, 0, 1)
-    elif anatomical_view == AnatomicalView.SAGITTAL_RIGHT.value:
         camera.SetPosition(1, 0, 0)
-        camera.SetViewUp(0, 0, 1)
+        camera.SetViewUp(0, 0, -1)
+    elif anatomical_view == AnatomicalView.SAGITTAL_RIGHT.value:
+        camera.SetPosition(-1, 0, 0)
+        camera.SetViewUp(0, 0, -1)
     else:
         raise ValueError(
             f"Camera view must be one of {AnatomicalView.__members__.values()}; {anatomical_view} provided"

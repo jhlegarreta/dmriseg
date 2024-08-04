@@ -4,12 +4,14 @@
 """
 Plot a labelmap as a set of 3D volumes. Can display a subset of the labels
 depending on the input arguments; displays all labels if none specified.
+
+If an anatomical reference image is given, it will also plot a slice of the
+image.
 """
 
 import argparse
 from pathlib import Path
 
-import numpy as np
 import vtk
 
 from dmriseg.data.lut.utils import (
@@ -17,19 +19,12 @@ from dmriseg.data.lut.utils import (
     get_diedrichsen_group_labels,
     read_lut_from_tsv2,
 )
+from dmriseg.visualization.color_utils import normalize_colors
 from dmriseg.visualization.vtk_utils import (
     capture_vtk_render_window,
     render_labelmap_to_vtk,
     save_vtk_image,
 )
-
-
-def normalize_colors(lut):
-
-    # Need colors to be in [0,1] for VTK
-    cmap = {key: tuple(np.array(values) / 255) for key, values in lut.items()}
-
-    return cmap
 
 
 def _build_arg_parser():
@@ -56,6 +51,11 @@ def _build_arg_parser():
         "anatomical_view",
         help="Anatomical type",
         type=str,
+    )
+    parser.add_argument(
+        "--in_ref_anat_img_fname",
+        help="Reference anatomical image filename (*.nii.gz)",
+        type=Path,
     )
     labels_group = parser.add_mutually_exclusive_group(required=False)
     labels_group.add_argument(
@@ -85,11 +85,10 @@ def main():
     args = _parse_args(parser)
 
     # Read the labelmap
-    nifti_reader = vtk.vtkNIFTIImageReader()
-    nifti_reader.SetFileName(args.in_labelmap_fname)
-    nifti_reader.Update()
-
-    labelmap = nifti_reader.GetOutput()
+    nifti_reader_lmap = vtk.vtkNIFTIImageReader()
+    nifti_reader_lmap.SetFileName(args.in_labelmap_fname)
+    nifti_reader_lmap.Update()
+    labelmap = nifti_reader_lmap.GetOutput()
 
     lut = read_lut_from_tsv2(args.in_labels_fname)
 
@@ -111,9 +110,21 @@ def main():
     # Normalize colors
     normalized_colors = normalize_colors(_lut)
 
+    anat_img = None
     size = (1920, 1080)
+    if args.in_ref_anat_img_fname:
+        # Read the anatomical image
+        nifti_reader_img = vtk.vtkNIFTIImageReader()
+        nifti_reader_img.SetFileName(args.in_ref_anat_img_fname)
+        nifti_reader_img.Update()
+        anat_img = nifti_reader_img.GetOutput()
+
     ren_win = render_labelmap_to_vtk(
-        labelmap, normalized_colors, args.anatomical_view, size
+        labelmap,
+        normalized_colors,
+        args.anatomical_view,
+        size,
+        anat_img=anat_img,
     )
 
     # Do not display the rendering window

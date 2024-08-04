@@ -26,6 +26,16 @@ def rescale_int_colors(colors):
     return colors_rescaled
 
 
+# ToDo
+# Merge with the above
+def normalize_colors(lut):
+
+    # Need colors to be in [0,1] for VTK
+    cmap = {key: tuple(np.array(values) / 255) for key, values in lut.items()}
+
+    return cmap
+
+
 def rgb2rgba(rgb, alpha_value=1):
     """Convert an RGB value to an RGBA.
 
