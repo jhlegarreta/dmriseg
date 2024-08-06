@@ -143,7 +143,7 @@ def resize_image(fname, width, height, **params_pil):
         img.save(fname, **params_pil)
 
 
-def binarize_image(fname):
+def create_binary_image_from_file(fname):
 
     img = Image.open(fname).convert("L")
 
@@ -153,7 +153,7 @@ def binarize_image(fname):
     return img.convert("1")
 
 
-def perform_morphological_closing(img):
+def close_binary_image(img):
 
     structure = np.ones((5, 5))
     closed_image = binary_closing(img, structure=structure)
@@ -162,13 +162,13 @@ def perform_morphological_closing(img):
     return Image.fromarray((closed_image * 255).astype(np.uint8))
 
 
-def process_mask_image(mask_scrnsht_fname):
+def create_mask_image_from_file(mask_scrnsht_fname):
 
     # Binarize the mask image
-    binarized_img = binarize_image(mask_scrnsht_fname)
+    binarized_img = create_binary_image_from_file(mask_scrnsht_fname)
 
     # Apply morphological closing to remove the border effects
-    return perform_morphological_closing(binarized_img)
+    return close_binary_image(binarized_img)
 
 
 def apply_mask_transparency(volume_scrnsht_fname, mask_scrnsht_fname):
@@ -179,9 +179,9 @@ def apply_mask_transparency(volume_scrnsht_fname, mask_scrnsht_fname):
     return volume_img
 
 
-def process_image(volume_scrnsht_fname, mask_scrnsht_fname):
+def mask_image(volume_scrnsht_fname, mask_scrnsht_fname):
 
-    closed_image = process_mask_image(mask_scrnsht_fname)
+    closed_image = create_mask_image_from_file(mask_scrnsht_fname)
 
     # Save the result
     closed_image.save(mask_scrnsht_fname)
@@ -316,7 +316,7 @@ def main():
 
         # Apply transparency to the pixels outside the mask in the volume
         # screenshot
-        volume_img = process_image(args.out_filename, mask_fname)
+        volume_img = mask_image(args.out_filename, mask_fname)
         volume_img.save(args.out_filename, dpi=(dpi, dpi))
 
     # Exit so that 3D Slicer gets closed down
