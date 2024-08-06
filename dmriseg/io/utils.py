@@ -26,6 +26,8 @@ fold_label = "fold"
 legend_label = "legend"
 participant_label_id = "ID"
 group_fname_label = "group"
+mask_fname_label = "mask"
+masked_fname_label = "masked"
 stats_fname_label = "stats"
 underscore = "_"
 

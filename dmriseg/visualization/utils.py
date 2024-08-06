@@ -3,6 +3,10 @@
 import enum
 from typing import Tuple
 
+import numpy as np
+from PIL import Image
+from scipy.ndimage import binary_closing
+
 
 class AnatomicalView(enum.Enum):
     AXIAL_INFERIOR = "axial_inferior"
@@ -77,3 +81,49 @@ def compute_central_slices(img):
     z_slice = img.shape[2] // 2
 
     return x_slice, y_slice, z_slice
+
+
+def create_binary_image_from_file(fname):
+
+    img = Image.open(fname).convert("L")
+
+    # Threshold
+    img = img.point(lambda p: 255 if p > 1 else 0)
+    # Convert to monochrome
+    return img.convert("1")
+
+
+def close_binary_image(img):
+
+    structure = np.ones((5, 5))
+    closed_image = binary_closing(img, structure=structure)
+
+    # Convert the result back to a PIL image
+    return Image.fromarray((closed_image * 255).astype(np.uint8))
+
+
+def create_mask_image_from_file(mask_scrnsht_fname):
+
+    # Binarize the mask image
+    binarized_img = create_binary_image_from_file(mask_scrnsht_fname)
+
+    # Apply morphological closing to remove the border effects
+    return close_binary_image(binarized_img)
+
+
+def apply_mask_transparency(volume_scrnsht_fname, mask_scrnsht_fname):
+
+    volume_img = Image.open(volume_scrnsht_fname).convert("RGBA")
+    mask_img = Image.open(mask_scrnsht_fname).convert("L")  # grayscale
+    volume_img.putalpha(mask_img)
+    return volume_img
+
+
+def mask_image(volume_scrnsht_fname, mask_scrnsht_fname):
+
+    mask_img = create_mask_image_from_file(mask_scrnsht_fname)
+
+    # Save the result
+    mask_img.save(mask_scrnsht_fname)
+
+    return apply_mask_transparency(volume_scrnsht_fname, mask_scrnsht_fname)

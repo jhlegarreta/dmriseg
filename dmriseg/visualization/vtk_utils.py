@@ -321,6 +321,33 @@ def render_labelmap_to_vtk(
     return ren_win
 
 
+# ToDo
+# Merge with the above or refactor parts
+def render_volume_slice_to_vtk(img, size):
+
+    ren_win = vtk.vtkRenderWindow()
+    ren_win.SetSize(size[0], size[1])
+
+    renderer = vtk.vtkRenderer()
+    img_size = img.GetDimensions()
+    spacing = img.GetSpacing()
+    vtk_img_slice, center1 = slice_vtk_image(img)
+    renderer.AddViewProp(vtk_img_slice)
+
+    cam = renderer.GetActiveCamera()
+    cam.ParallelProjectionOn()
+    cam.SetParallelScale(0.5 * spacing[1] * img_size[1])
+    cam.SetFocalPoint(center1[0], center1[1], center1[2] + 50)
+    cam.SetPosition(center1[0], center1[1], center1[2])
+
+    # renderer.SetBackground(0.0, 0.0, 0.0)  # black
+    renderer.SetBackground(1.0, 1.0, 1.0)  # white
+
+    ren_win.AddRenderer(renderer)
+
+    return ren_win
+
+
 def set_camera_view(renderer, anatomical_view):
     camera = renderer.GetActiveCamera()
     if anatomical_view == AnatomicalView.AXIAL_SUPERIOR.value:
