@@ -101,6 +101,7 @@ fi
 group_names=("all" "dcn")
 view_names=("axial_superior" "axial_inferior" "coronal_anterior" "coronal_posterior" "sagittal_left" "sagittal_right")
 
+# Plot only the labelmap 3D volumes
 for group_name in "${group_names[@]}"; do
 
   for view_name in "${view_names[@]}"; do
@@ -117,6 +118,57 @@ for group_name in "${group_names[@]}"; do
       ${out_fname} \
       ${view_name} \
       --group_name ${group_name}
+
+  done
+
+done
+
+# Plot the slice and labelmap 3D volumes, and mask to the brain mask
+in_processed_data_root_dirname=/mnt/data/cerebellum_parc/experiments_minimal_pipeline/plots/processed_data
+if [[ ${contrast} == "labelmap" ]]; then
+  bckgnd_contrast_folder_label=dmri_hcp_t1
+  bckgnd_contrast_fname_label=t1_resized
+  in_fname=${in_processed_data_root_dirname}/${participant_id}/labelmap/${participant_id}__cer_seg_resized_cropped.nii.gz
+else
+  bckgnd_contrast_folder_label=${in_folder_label}
+  bckgnd_contrast_fname_label=${file_basename_label}
+  in_fname=${in_processed_data_root_dirname}/${participant_id}/${in_folder_label}/prediction/${participant_id}__${file_basename_label}_pred_cropped.nii.gz
+fi
+
+in_ref_anat_img_fname=${in_processed_data_root_dirname}/${participant_id}/${bckgnd_contrast_folder_label}/volume/${participant_id}__${bckgnd_contrast_fname_label}_brainmasked_cropped.nii.gz
+mask_fname=${in_processed_data_root_dirname}/${participant_id}/brainmask/${participant_id}__brainmask_resized_cropped.nii.gz
+
+group_names=("dcn")
+view_names=("axial_superior")
+
+# Notes
+# 117021 cam.SetFocalPoint(center1[0], center1[1], center1[2] + 30) looks OK (for the resizeD_brainmaked_cropped volume)
+# 101107 cam.SetFocalPoint(center1[0], center1[1], center1[2] + 34) looks OK (for the resizeD_brainmaked_cropped volume)
+# So the center1[2] + {} value was changed manually for each case
+# 101107 in fold-1 misses label 34 (Right Fastigial) in t1 prediction; dwi does not; dwi1k does not
+# 121719 in fold-1 misses labels 32 (Right_Interposed) and 34 (Right Fastigial) in t1 prediction; dwi does not; dwi1k does not
+# 129028 in fold-3 misses label 34 (Right Fastigial) in t1 prediction; dwi does not; dwi1k does not
+# All fold-1 and fold-2 cases miss label 34 (Right Fastigial) in t1 prediction
+#
+
+for group_name in "${group_names[@]}"; do
+
+  for view_name in "${view_names[@]}"; do
+
+    if [[ ${contrast} == "labelmap" ]]; then
+      out_fname=${out_dirname}/${participant_id}__${file_basename_label}_gnd_th_labelmap_volume_${group_name}_${view_name}_slice.png
+    else
+      out_fname=${out_dirname}/${participant_id}__${file_basename_label}_pred_labelmap_volume_${group_name}_${view_name}_slice.png
+    fi
+
+    python /home/jhlegarreta/src/dmriseg/scripts/screenshot_vtk_labelmap_volume.py \
+      ${in_fname} \
+      ${lut_fname} \
+      ${out_fname} \
+      ${view_name} \
+      --group_name ${group_name} \
+      --in_ref_anat_img_fname ${in_ref_anat_img_fname} \
+      --mask_fname ${mask_fname}
 
   done
 
