@@ -105,7 +105,11 @@ for group_name in "${group_names[@]}"; do
 
   for view_name in "${view_names[@]}"; do
 
-    out_fname=${out_dirname}/${participant_id}__${file_basename_label}_pred_labelmap_volume_${group_name}_${view_name}.png
+    if [[ ${contrast} == "labelmap" ]]; then
+      out_fname=${out_dirname}/${participant_id}__${file_basename_label}_gnd_th_labelmap_volume_${group_name}_${view_name}.png
+    else
+      out_fname=${out_dirname}/${participant_id}__${file_basename_label}_pred_labelmap_volume_${group_name}_${view_name}.png
+    fi
 
     python /home/jhlegarreta/src/dmriseg/scripts/screenshot_vtk_labelmap_volume.py \
       ${in_fname} \
