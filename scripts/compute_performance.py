@@ -36,6 +36,8 @@ from dmriseg.io.utils import (
     underscore,
 )
 
+hcp_sub_id_len = 6
+
 
 def compute_measures(
     gnd_th_img, pred_img, spacing, labels, exclude_background
@@ -112,6 +114,29 @@ def serialize_measures(metrics, measures, labels, sub_ids, sep, out_dirname):
             stats_df.to_csv(fname, sep=sep, na_rep="NA")
 
 
+def indentify_missing_participants(fnames, sub_ids):
+    file_rootnames = [Path(fname).with_suffix("").stem for fname in fnames]
+    # Assume all participant ids have the same length
+    fnames_sub_ids = [fname[:hcp_sub_id_len] for fname in file_rootnames]
+    _sub_ids = list(map(str, sub_ids))
+    return sorted(set(fnames_sub_ids).difference(_sub_ids))
+
+
+def adjust_missing_participants(fnames, sub_ids):
+    missing_sub_ids = indentify_missing_participants(fnames, sub_ids)
+    return (
+        sorted(
+            [
+                fname
+                for fname in fnames
+                if Path(fname).with_suffix("").stem[:hcp_sub_id_len]
+                not in missing_sub_ids
+            ]
+        ),
+        missing_sub_ids,
+    )
+
+
 def _build_arg_parser():
 
     parser = argparse.ArgumentParser(
@@ -141,6 +166,11 @@ def _build_arg_parser():
         "out_dirname",
         help="Output dirname",
         type=Path,
+    )
+    parser.add_argument(
+        "--subsampled_dwi",
+        action="store_true",
+        help="Subsampled dwi experiment",
     )
     return parser
 
@@ -172,7 +202,27 @@ def main():
     df_particip = pd.read_csv(args.in_participants_fname, sep=sep)
     sub_ids = sorted(df_particip[participant_label_id].values)
 
-    assert len(gnd_th_lmap_fnames) == len(pred_lmap_fnames) == len(sub_ids)
+    if args.subsampled_dwi:
+        print("Considering subsampled dwi experiment data")
+        assert len(pred_lmap_fnames) == len(sub_ids)
+        if len(gnd_th_lmap_fnames) == len(pred_lmap_fnames) == len(sub_ids):
+            pass
+        else:
+            diff = len(gnd_th_lmap_fnames) - len(sub_ids)
+            assert diff > 0
+            print(
+                "More ground truth labelmap files than participants:\n"
+                f"gnd th files: {len(gnd_th_lmap_fnames)}; "
+                f"participants: {len(sub_ids)}; diff: {diff}"
+            )
+            print("This is expected. Considering only existing participants.")
+            # Remove the missing participants
+            gnd_th_lmap_fnames, missing_sub_ids = adjust_missing_participants(
+                gnd_th_lmap_fnames, sub_ids
+            )
+            print(f"Missing participants: {missing_sub_ids}")
+    else:
+        assert len(gnd_th_lmap_fnames) == len(pred_lmap_fnames) == len(sub_ids)
 
     df_lut = pd.read_csv(args.in_labels_fname, sep=sep)
     labels = sorted(df_lut[lut_class_id_label].values)

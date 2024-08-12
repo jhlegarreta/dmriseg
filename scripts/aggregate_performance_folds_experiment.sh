@@ -40,6 +40,18 @@ elif [[ ${contrast} == "mk" ]]; then
   contrast_folder_label=dmri_hcp_mk
 elif [[ ${contrast} == "rk" ]]; then
   contrast_folder_label=dmri_hcp_rk
+elif [[ ${contrast} == "dwisub20" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs20
+elif [[ ${contrast} == "dwisub30" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs30
+elif [[ ${contrast} == "dwisub60" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs60
+elif [[ ${contrast} == "dwi1ksub20" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs20
+elif [[ ${contrast} == "dwi1ksub30" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs30
+elif [[ ${contrast} == "dwi1ksub60" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs60
 else
   echo "Contrast not available:" ${contrast}
   echo "Aborting."

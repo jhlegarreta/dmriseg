@@ -37,7 +37,7 @@ def aggregate_data(dirnames, folds, measure, ext, sep):
     # Assert that they all have the same number of columns
     assert all(df.columns.equals(dfs[0].columns) for df in dfs)
     # Assert that they all have different participant ids
-    participant_ids = sorted(np.array([df.index.values for df in dfs]).ravel())
+    participant_ids = sorted(np.hstack([df.index.values for df in dfs]))
     assert len(participant_ids) == len(set(participant_ids))
 
     # Add the fold name as a column for informative purposes

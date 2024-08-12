@@ -5,6 +5,37 @@ source $(which virtualenvwrapper.sh)
 
 workon dmriseg
 
+subdwi_contrast="dwisub"
+subdwi1k_contrast="dwi1ksub"
+
+subsampled_dwi_contrasts=("dwisub20" "dwisub30" "dwisub60")
+subsampled_dwi1k_contrasts=("dwi1ksub20" "dwi1ksub30" "dwi1ksub60")
+
+function subsampled_contrast_type() {
+  local _contrast="$1"
+
+  _subsampled_contrast_type=""
+
+  # Check if the string equals any element in the array
+  for element in "${subsampled_dwi_contrasts[@]}"; do
+    if [[ "${_contrast}" == "$element" ]]; then
+      # echo "Match found: $element"
+      _subsampled_contrast_type=${subdwi_contrast}
+      break
+    fi
+  done
+
+  for element in "${subsampled_dwi1k_contrasts[@]}"; do
+    if [[ "${_contrast}" == "$element" ]]; then
+      # echo "Match found: $element"
+      _subsampled_contrast_type=${subdwi1k_contrast}
+      break
+    fi
+  done
+
+  echo ${_subsampled_contrast_type}
+}
+
 contrast=$1
 
 # Folds
@@ -43,6 +74,18 @@ elif [[ ${contrast} == "mk" ]]; then
   contrast_folder_label=dmri_hcp_mk
 elif [[ ${contrast} == "rk" ]]; then
   contrast_folder_label=dmri_hcp_rk
+elif [[ ${contrast} == "dwisub20" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs20
+elif [[ ${contrast} == "dwisub30" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs30
+elif [[ ${contrast} == "dwisub60" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs60
+elif [[ ${contrast} == "dwi1ksub20" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs20
+elif [[ ${contrast} == "dwi1ksub30" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs30
+elif [[ ${contrast} == "dwi1ksub60" ]]; then
+  contrast_folder_label=dmri_hcp_sphm_b1000_subsampled_dirs60
 else
   echo "Contrast not available:" ${contrast}
   echo "Aborting."
@@ -62,6 +105,9 @@ in_labels_fname=/mnt/data/lut/suit_diedrichsen_lut0255_nuclei_colored.tsv
 
 perf_script_dirname=/home/jhlegarreta/src/dmriseg/scripts
 
+subsampled_contrast_type=$(subsampled_contrast_type "${contrast}")
+echo "Subsampled contrast type (empty if not applicable)": ${subsampled_contrast_type}
+
 echo "Starting performance computation..."
 for fold in "${folds[@]}"; do
 
@@ -69,7 +115,14 @@ for fold in "${folds[@]}"; do
 
   fold_dirname=${contrast_dirname}/${fold}
 
-  in_participants_fname=${folds_root_dirname}/${fold}/cerebellum_participants_hcp_qc_no_sub_prefix_${fold}_split-${test_split_label}.tsv
+  if [[ ${subsampled_contrast_type} == "${subdwi_contrast}" || ${subsampled_contrast_type} == "${subdwi1k_contrast}" ]]; then
+    in_participants_fname=${folds_root_dirname}/${fold}/cerebellum_participants_hcp_qc_no_sub_prefix_dwi_subsampling_${fold}_split-${test_split_label}.tsv
+  else
+    in_participants_fname=${folds_root_dirname}/${fold}/cerebellum_participants_hcp_qc_no_sub_prefix_${fold}_split-${test_split_label}.tsv
+  fi
+
+  echo "Participants fname:" ${in_participants_fname}
+
   in_gnd_th_labelmap_dirname=${gnd_th_labelmap_root_dirname}/${fold}/test_set
   in_pred_labelmap_dirname=${contrast_dirname}/${fold}/results/prediction
 
@@ -77,12 +130,23 @@ for fold in "${folds[@]}"; do
 
   mkdir ${perf_dirname}
 
-  python ${perf_script_dirname}/compute_performance.py \
-    ${in_participants_fname} \
-    ${in_gnd_th_labelmap_dirname} \
-    ${in_pred_labelmap_dirname} \
-    ${in_labels_fname} \
-    ${perf_dirname}
+
+  if [[ ${subsampled_contrast_type} == "${subdwi_contrast}" || ${subsampled_contrast_type} == "${subdwi1k_contrast}" ]]; then
+    python ${perf_script_dirname}/compute_performance.py \
+      ${in_participants_fname} \
+      ${in_gnd_th_labelmap_dirname} \
+      ${in_pred_labelmap_dirname} \
+      ${in_labels_fname} \
+      ${perf_dirname} \
+      --subsampled_dwi
+  else
+    python ${perf_script_dirname}/compute_performance.py \
+      ${in_participants_fname} \
+      ${in_gnd_th_labelmap_dirname} \
+      ${in_pred_labelmap_dirname} \
+      ${in_labels_fname} \
+      ${perf_dirname}
+  fi
 
 done
 
