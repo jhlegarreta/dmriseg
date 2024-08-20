@@ -9,6 +9,7 @@ from dmriseg.data.lut.utils import (
     class_name_label,
     get_diedrichsen_group_labels,
 )
+from dmriseg.io.utils import fold_label
 from dmriseg.io.utils import participant_label_id as _participant_label_id
 from dmriseg.utils.contrast_utils import get_contrast_names_lut
 
@@ -142,6 +143,52 @@ def prepare_data_for_anova(dfs, measure, contrast_names):
     )
 
     return df_anova, depvar_label, _subject_label, within_label
+
+
+# ToDo
+# This is exactly the same as above, but I am not using the contrast_names_lut
+# labels, but the actual contrast names
+def prepare_data_for_pairwise_test(dfs, measure, contrast_names):
+
+    suit_labels = get_diedrichsen_group_labels(
+        SuitAtlasDiedrichsenGroups.ALL.value
+    )
+
+    # Compute the mean across all labels for each participant/contrast
+    columns_of_interest = list(map(str, suit_labels))
+
+    # Drop the fold column
+    [df.drop(labels=[fold_label], axis=1, inplace=True) for df in dfs]
+
+    measure_prtcpnt_mean = np.hstack(
+        [df[columns_of_interest].mean(axis=1).values for df in dfs]
+    )
+
+    # Create the values for the participant and contrast columns
+    # For the pairwise t-test, we are interested in knowing the significance
+    # between contrasts (i.e. the fixed effect), whereas participants are the
+    # measurements (i.e. the random effect)
+    participant_ids = np.hstack([df.index.to_numpy() for df in dfs])
+    contrast = np.hstack(
+        [
+            len(df.index) * [contrast_name]
+            for df, contrast_name in zip(dfs, contrast_names)
+        ]
+    )
+
+    depvar_label = measure
+    _subject_label = subject_label
+    between_label = contrast_label
+
+    df_stat_test = pd.DataFrame(
+        {
+            _subject_label: participant_ids,
+            between_label: contrast,
+            depvar_label: measure_prtcpnt_mean,
+        }
+    )
+
+    return df_stat_test, depvar_label, _subject_label, between_label
 
 
 def describe_wilcoxon_ranksum(alternative=None):

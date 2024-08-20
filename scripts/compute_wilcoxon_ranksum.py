@@ -13,7 +13,9 @@ from pathlib import Path
 import pandas as pd
 from scipy.stats import ranksums
 
+from dmriseg.data.lut.utils import SuitAtlasDiedrichsenGroups
 from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
+from dmriseg.data.lut.utils import get_diedrichsen_group_labels
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import append_label_to_fname, build_suffix, underscore
 from dmriseg.stats.utils import StatisticalTest
@@ -134,11 +136,6 @@ def main():
     )
 
     # Compute overall significance and save the results to a file
-    from dmriseg.data.lut.utils import (
-        SuitAtlasDiedrichsenGroups,
-        get_diedrichsen_group_labels,
-    )
-
     group_name = SuitAtlasDiedrichsenGroups.ALL
 
     labels = list(map(str, get_diedrichsen_group_labels(group_name.value)))
@@ -148,6 +145,10 @@ def main():
     # participants
     # - We want to understand if the differences between participants are
     # consistent when averaged over labels
+    # ToDo
+    # Not sure the above is OK: we are interested in measuring the difference
+    # across CONTRASTS (our fixed effect); whereas PARTICIPANTS are our random
+    # effect
     axis = 1
     particip_metric_values_ref = df_metric_ref[labels].mean(axis=axis)
     particip_metric_values = df_metric[labels].mean(axis=axis)

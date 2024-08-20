@@ -10,6 +10,7 @@ count_label = "count"
 
 
 class StatisticalTest(enum.Enum):
+    PAIRWISE_T_TEST = "pairwise_t_test"
     WILCOXON_RANKSUM = "wilcoxon_ranksum"
 
 
