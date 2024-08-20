@@ -13,7 +13,9 @@ from pathlib import Path
 import pandas as pd
 from scipy.stats import ranksums
 
+from dmriseg.data.lut.utils import SuitAtlasDiedrichsenGroups
 from dmriseg.data.lut.utils import class_id_label as lut_class_id_label
+from dmriseg.data.lut.utils import get_diedrichsen_group_labels
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import append_label_to_fname, build_suffix, underscore
 from dmriseg.stats.utils import StatisticalTest
@@ -134,11 +136,6 @@ def main():
     )
 
     # Compute overall significance and save the results to a file
-    from dmriseg.data.lut.utils import (
-        SuitAtlasDiedrichsenGroups,
-        get_diedrichsen_group_labels,
-    )
-
     group_name = SuitAtlasDiedrichsenGroups.ALL
 
     labels = list(map(str, get_diedrichsen_group_labels(group_name.value)))
