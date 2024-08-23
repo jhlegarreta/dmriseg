@@ -78,15 +78,6 @@ def main():
         for fname in fnames
     ]
 
-    # For Dice coefficients, we cannot have NaN of inf values
-    assert not any([df.isna().any().any() for df in dfs])
-    assert not any(
-        [
-            np.isinf(df.select_dtypes(include=[np.number]).values).any()
-            for df in dfs
-        ]
-    )
-
     (
         df_anova,
         depvar_label,

@@ -9,7 +9,6 @@ using a pairwise (Student's) t-test.
 import argparse
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import pingouin as pg
 
@@ -79,15 +78,6 @@ def main():
         pd.read_csv(fname, sep=sep, index_col=participant_label_id)
         for fname in fnames
     ]
-
-    # For Dice coefficients, we cannot have NaN of inf values
-    assert not any([df.isna().any().any() for df in dfs])
-    assert not any(
-        [
-            np.isinf(df.select_dtypes(include=[np.number]).values).any()
-            for df in dfs
-        ]
-    )
 
     # Assert we have the same participants for all dfs (contrasts)
     # Compute the difference with respect to the first

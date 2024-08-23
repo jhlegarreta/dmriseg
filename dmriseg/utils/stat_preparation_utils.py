@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
+
 import numpy as np
 import pandas as pd
 
+from dmriseg.analysis.measures import Measure
 from dmriseg.data.lut.utils import (
     SuitAtlasDiedrichsenGroups,
     class_name_label,
@@ -116,17 +119,72 @@ def prepare_data_for_anova(dfs, measure, contrast_names):
     # Compute the mean across all labels for each participant/contrast
     columns_of_interest = list(map(str, suit_labels))
 
+    # Drop the fold column
+    [df.drop(labels=[fold_label], axis=1, inplace=True) for df in dfs]
+
+    # For Dice coefficients or volume similarity, we cannot have NaN or inf
+    # values; for the rest, we need to filter inf values (NaN values are
+    # filtered by default by pandas)
+    if measure in [Measure.DICE.value, Measure.VOLUME_SIMILARITY.value]:
+        assert not any([df.isna().any().any() for df in dfs])
+        assert not any(
+            [
+                np.isinf(df.select_dtypes(include=[np.number]).values).any()
+                for df in dfs
+            ]
+        )
+        _dfs = copy.deepcopy(dfs)
+    else:
+        if any([df.isna().any().any() for df in dfs]):
+            print(
+                "NaN values found. They will be filtered to compute the mean."
+            )
+            _dfs = copy.deepcopy(dfs)
+        elif any(
+            [
+                np.isinf(df.select_dtypes(include=[np.number]).values).any()
+                for df in dfs
+            ]
+        ):
+            print(
+                "np.inf values found. They will be filtered to compute the mean."
+            )
+            _dfs = [
+                df.replace([np.inf, -np.inf], np.nan, inplace=False)
+                for df in dfs
+            ]
+        else:
+            raise NotImplementedError(
+                "Data checks have not considered this case. Check the data/code."
+            )
+
+    # Check if there is some row where all values are NaN
+    for contrast_name, _df in zip(contrast_names, _dfs):
+        idx = _df[_df.isnull().all(axis=1)].index
+        if not idx.empty:
+            print(
+                f"{idx} contains all NaN values for {measure}; the segmentation probably failed for {contrast_name} contrast"
+            )
+
+    # Compute the mean across all labels for each participant/contrast
     measure_prtcpnt_mean = np.hstack(
-        [df[columns_of_interest].mean(axis=1).values for df in dfs]
+        [_df[columns_of_interest].mean(axis=1).values for _df in _dfs]
     )
+
+    # Assert all values are finite.
+    # ToDo
+    # If a participant has failed completely, not sure how AnovaRM would behave
+    assert all(
+        np.isfinite(measure_prtcpnt_mean)
+    ), f"Values averaged over {columns_of_interest}, {measure} contain non-finite values"
 
     # Create the values for the participant (subject for AnovaRM) and contrast
     # (within for AnovaRM) columns
-    participant_ids = np.hstack([df.index.to_numpy() for df in dfs])
+    participant_ids = np.hstack([_df.index.to_numpy() for _df in _dfs])
     contrast = np.hstack(
         [
-            len(df.index) * [contrast_names_lut[contrast_name]]
-            for df, contrast_name in zip(dfs, contrast_names)
+            len(_df.index) * [contrast_names_lut[contrast_name]]
+            for _df, contrast_name in zip(_dfs, contrast_names)
         ]
     )
 
@@ -154,25 +212,77 @@ def prepare_data_for_pairwise_test(dfs, measure, contrast_names):
         SuitAtlasDiedrichsenGroups.ALL.value
     )
 
-    # Compute the mean across all labels for each participant/contrast
     columns_of_interest = list(map(str, suit_labels))
 
     # Drop the fold column
     [df.drop(labels=[fold_label], axis=1, inplace=True) for df in dfs]
 
+    # For Dice coefficients or volume similarity, we cannot have NaN or inf
+    # values; for the rest, we need to filter inf values (NaN values are
+    # filtered by default by pandas)
+    if measure in [Measure.DICE.value, Measure.VOLUME_SIMILARITY.value]:
+        assert not any([df.isna().any().any() for df in dfs])
+        assert not any(
+            [
+                np.isinf(df.select_dtypes(include=[np.number]).values).any()
+                for df in dfs
+            ]
+        )
+        _dfs = copy.deepcopy(dfs)
+    else:
+        if any([df.isna().any().any() for df in dfs]):
+            print(
+                "NaN values found. They will be filtered to compute the mean."
+            )
+            _dfs = copy.deepcopy(dfs)
+        elif any(
+            [
+                np.isinf(df.select_dtypes(include=[np.number]).values).any()
+                for df in dfs
+            ]
+        ):
+            print(
+                "np.inf values found. They will be filtered to compute the mean."
+            )
+            _dfs = [
+                df.replace([np.inf, -np.inf], np.nan, inplace=False)
+                for df in dfs
+            ]
+        else:
+            raise NotImplementedError(
+                "Data checks have not considered this case. Check the data/code."
+            )
+
+    # Check if there is some row where all values are NaN
+    for contrast_name, _df in zip(contrast_names, _dfs):
+        idx = _df[_df.isnull().all(axis=1)].index
+        if not idx.empty:
+            print(
+                f"{idx} contains all NaN values for {measure}; the segmentation probably failed for {contrast_name} contrast"
+            )
+
+    # Compute the mean across all labels for each participant/contrast
     measure_prtcpnt_mean = np.hstack(
-        [df[columns_of_interest].mean(axis=1).values for df in dfs]
+        [_df[columns_of_interest].mean(axis=1).values for _df in _dfs]
     )
+
+    # Assert all values are finite.
+    # ToDo
+    # If a participant has failed completely, not sure how the t-test would
+    # behave
+    assert all(
+        np.isfinite(measure_prtcpnt_mean)
+    ), f"Values averaged over {columns_of_interest}, {measure} contain non-finite values"
 
     # Create the values for the participant and contrast columns
     # For the pairwise t-test, we are interested in knowing the significance
     # between contrasts (i.e. the fixed effect), whereas participants are the
     # measurements (i.e. the random effect)
-    participant_ids = np.hstack([df.index.to_numpy() for df in dfs])
+    participant_ids = np.hstack([_df.index.to_numpy() for _df in _dfs])
     contrast = np.hstack(
         [
-            len(df.index) * [contrast_name]
-            for df, contrast_name in zip(dfs, contrast_names)
+            len(_df.index) * [contrast_name]
+            for _df, contrast_name in zip(_dfs, contrast_names)
         ]
     )
 

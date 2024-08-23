@@ -11,6 +11,7 @@ Performance measure files are expected to have the following format:
 import argparse
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from dmriseg.analysis.measures import Measure
@@ -37,12 +38,41 @@ def compute_group_performance_statistics(
     # across all elements
     labels = list(map(str, get_diedrichsen_group_labels(group_name)))
     df_subset = df[labels]
-    df_group = pd.DataFrame(
-        df_subset.to_numpy().flatten(), columns=[group_name]
+
+    # Compute stats
+    # Replace inf for NaNs so that they do not skew the stats
+    _df_subset = df_subset.replace([np.inf, -np.inf], np.nan, inplace=False)
+
+    # Check if there is some row where all values are NaN (e.g. missed both
+    # fastigial nuclei)
+    idx = _df_subset[_df_subset.isnull().all(axis=1)].index
+    if not idx.empty:
+        print(
+            f"{idx} contains all NaN values for {measure}; the segmentation probably failed for {group_name} labels"
+        )
+
+    # Compute the row-wise (e.g. participant-wise; across labels) stats, which
+    # will yield a df with no NaN or np.inf
+    _df_subset_row_wise_mean = pd.DataFrame(
+        _df_subset.mean(axis=1), columns=[group_name]
     )
 
-    with pd.option_context("mode.use_inf_as_na", True):
-        return df_group.describe()
+    # Check if all values (except for idx) are finite
+    finite_check = np.isfinite(
+        _df_subset_row_wise_mean.drop(idx, inplace=False)[
+            group_name
+        ].to_numpy()
+    )
+
+    # Assert that all values are finite
+    assert (
+        finite_check.all()
+    ), f"{group_name}, {measure} contains non-finite values"
+
+    # Compute stats across participants
+    df_stats = _df_subset_row_wise_mean.describe()
+
+    return df_stats
 
 
 def _build_arg_parser():
