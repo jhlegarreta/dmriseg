@@ -82,15 +82,6 @@ def main():
         for fname in fnames
     ]
 
-    # For Dice coefficients, we cannot have NaN of inf values
-    assert not any([df.isna().any().any() for df in dfs])
-    assert not any(
-        [
-            np.isinf(df.select_dtypes(include=[np.number]).values).any()
-            for df in dfs
-        ]
-    )
-
     (
         df_anova,
         depvar_label,
@@ -108,7 +99,11 @@ def main():
     sns.set(style="ticks")
 
     g = sns.displot(
-        data=df_anova, x="dice", hue="contrast", kind="kde", palette="icefire"
+        data=df_anova,
+        x=f"{measure}",
+        hue="contrast",
+        kind="kde",
+        palette="icefire",
     )
 
     plt.xlabel(measure)
