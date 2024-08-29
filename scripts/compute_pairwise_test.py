@@ -94,7 +94,7 @@ def main():
         data_df,
         depvar_label,
         _subject_label,
-        between_label,
+        within_label,
     ) = prepare_data_for_pairwise_test(
         dfs, args.measure_name, args.in_contrast_names
     )
@@ -108,7 +108,7 @@ def main():
     stats_df = pg.pairwise_tests(
         data=data_df,
         dv=depvar_label,
-        between=between_label,
+        within=within_label,
         subject=_subject_label,
         parametric=parametric,
         padjust=padjust,

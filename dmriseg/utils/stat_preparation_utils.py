@@ -288,17 +288,17 @@ def prepare_data_for_pairwise_test(dfs, measure, contrast_names):
 
     depvar_label = measure
     _subject_label = subject_label
-    between_label = contrast_label
+    within_label = contrast_label
 
     df_stat_test = pd.DataFrame(
         {
             _subject_label: participant_ids,
-            between_label: contrast,
+            within_label: contrast,
             depvar_label: measure_prtcpnt_mean,
         }
     )
 
-    return df_stat_test, depvar_label, _subject_label, between_label
+    return df_stat_test, depvar_label, _subject_label, within_label
 
 
 def describe_wilcoxon_ranksum(alternative=None):
