@@ -46,6 +46,11 @@ def _build_arg_parser():
         help="Output filename (*.png)",
         type=Path,
     )
+    parser.add_argument(
+        "--kde",
+        help="Use KDE histogram representation",
+        action="store_true",
+    )
     return parser
 
 
@@ -102,7 +107,7 @@ def main():
         data=df_anova,
         x=f"{measure}",
         hue="contrast",
-        kind="kde",
+        kind="kde" if args.kde else "hist",
         palette="icefire",
     )
 

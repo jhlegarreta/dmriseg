@@ -82,6 +82,7 @@ for _measure_name in "${measure_names[@]}"; do
     --contrast_names "${in_contrast_names[@]}" \
     --measure_name ${_measure_name} \
     --out_fname ${out_dirname}/${_measure_name}_distribution.svg
+    # --out_fname ${out_dirname}/${_measure_name}_distribution_kde.svg --kde
 
 done
 
