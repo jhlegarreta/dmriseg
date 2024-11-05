@@ -50,6 +50,12 @@ def _build_arg_parser():
         help="Contrast names",
         type=str,
     )
+    parser.add_argument(
+        "--labels",
+        help="Subset of labels for the ANOVA analysis",
+        type=int,
+        nargs="+",
+    )
     return parser
 
 
@@ -96,7 +102,10 @@ def main():
         _subject_label,
         within_label,
     ) = prepare_data_for_pairwise_test(
-        dfs, args.measure_name, args.in_contrast_names
+        dfs,
+        args.measure_name,
+        args.in_contrast_names,
+        columns_of_interest=list(map(str, args.labels)),
     )
 
     # When parametric=True, the below call is equivalent to

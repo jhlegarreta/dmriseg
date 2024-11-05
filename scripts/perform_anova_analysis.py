@@ -38,6 +38,12 @@ def _build_arg_parser():
         type=str,
     )
     parser.add_argument(
+        "--labels",
+        help="Subset of labels for the ANOVA analysis",
+        type=int,
+        nargs="+",
+    )
+    parser.add_argument(
         "--out_fname",
         help="Output filename (*.tsv)",
         type=Path,
@@ -83,7 +89,12 @@ def main():
         depvar_label,
         _subject_label,
         within_label,
-    ) = prepare_data_for_anova(dfs, measure, args.contrast_names)
+    ) = prepare_data_for_anova(
+        dfs,
+        measure,
+        args.contrast_names,
+        columns_of_interest=list(map(str, args.labels)),
+    )
 
     # Conduct the repeated measures ANOVA
     aov = AnovaRM(

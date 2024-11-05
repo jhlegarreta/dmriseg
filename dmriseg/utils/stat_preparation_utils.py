@@ -108,7 +108,9 @@ def create_df(
     ).reset_index(drop=True)
 
 
-def prepare_data_for_anova(dfs, measure, contrast_names):
+def prepare_data_for_anova(
+    dfs, measure, contrast_names, columns_of_interest=None
+):
 
     contrast_names_lut = get_contrast_names_lut()
 
@@ -117,7 +119,8 @@ def prepare_data_for_anova(dfs, measure, contrast_names):
     )
 
     # Compute the mean across all labels for each participant/contrast
-    columns_of_interest = list(map(str, suit_labels))
+    if columns_of_interest is None:
+        columns_of_interest = list(map(str, suit_labels))
 
     # Drop the fold column
     [df.drop(labels=[fold_label], axis=1, inplace=True) for df in dfs]
@@ -206,13 +209,17 @@ def prepare_data_for_anova(dfs, measure, contrast_names):
 # ToDo
 # This is exactly the same as above, but I am not using the contrast_names_lut
 # labels, but the actual contrast names
-def prepare_data_for_pairwise_test(dfs, measure, contrast_names):
+def prepare_data_for_pairwise_test(
+    dfs, measure, contrast_names, columns_of_interest=None
+):
 
     suit_labels = get_diedrichsen_group_labels(
         SuitAtlasDiedrichsenGroups.ALL.value
     )
 
-    columns_of_interest = list(map(str, suit_labels))
+    # Compute the mean across all labels for each participant/contrast
+    if columns_of_interest is None:
+        columns_of_interest = list(map(str, suit_labels))
 
     # Drop the fold column
     [df.drop(labels=[fold_label], axis=1, inplace=True) for df in dfs]
