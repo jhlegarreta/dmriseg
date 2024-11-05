@@ -394,7 +394,7 @@ def compute_volume_similarity(
 def rename_measure_names_plot_labels(meaure_name):
 
     if meaure_name == Measure.CENTER_OF_MASS_DISTANCE.value:
-        return "CM dist"
+        return "CMD"
     elif meaure_name == Measure.DICE.value:
         return "DSC"
     elif meaure_name == Measure.HAUSDORFF.value:
