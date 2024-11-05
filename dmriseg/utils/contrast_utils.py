@@ -121,7 +121,7 @@ def rename_contrasts_plot_labels(contrast):
     if contrast == ContrastNames.T1.value:
         return "T1w"
     elif contrast == ContrastNames.B0.value:
-        return "B0"
+        return "b0"
     elif contrast == ContrastNames.DWI.value:
         return "SM"
     elif contrast == ContrastNames.DWI1k.value:
