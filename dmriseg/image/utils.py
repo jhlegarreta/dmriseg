@@ -189,11 +189,8 @@ def compute_distance_transform_map(labelmap, labels):
 # ToDo
 # This and visualization.scene_utils.create_mask_from_scene should be merged
 def create_mask_from_rgb_array(img_array, background):
-    return (
-        (img_array[:, :, 0] != background)
-        & (img_array[:, :, 1] != background)
-        & (img_array[:, :, 2] != background)
-    )
+    # Create a boolean mask where all RGB values are not equal to background
+    return ~np.all(img_array == background, axis=-1)
 
 
 # ToDo
