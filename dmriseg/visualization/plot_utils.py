@@ -368,7 +368,11 @@ def mplfig2img(fig):
 
 def get_plot_ylim(measure_name):
 
-    if measure_name == Measure.DICE.value:
+    if measure_name in [
+        Measure.DICE.value,
+        Measure.VOLUME_SIMILARITY.value,
+        Measure.LABEL_DETECTION_RATE.value,
+    ]:
         return [-0.05, 1.05]  # Allow some room for the violin cut
     else:
         raise NotImplementedError(f"Measure {measure_name} not implemented.")

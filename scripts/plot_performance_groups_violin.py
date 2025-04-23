@@ -126,7 +126,17 @@ def plot_grouped_violin(
     separate_legend_from_fig=False,
     bottom_legend=False,
     use_scatter_legend=False,
+    large_labels=True,
 ):
+
+    if large_labels:
+        plt.rcParams.update(
+            {
+                "font.size": 16,
+                "legend.fontsize": 12,
+                "legend.markerscale": 1.4,  # Makes legend markers x times bigger than plot markers
+            }
+        )
 
     # Create the figure and axis objects
     fig, ax = plt.subplots(figsize=(14, 7))
@@ -328,7 +338,7 @@ def prepare_df(dfs, contrasts, measure_name, label_mapping):
     return melted_df
 
 
-def aggregate_overall_performance(df, group_name):
+def aggregate_overall_performance(df, group_name, aggregate_only):
 
     # Compute the mean across all labels for each participant/contrast
     groupby = [participant_label_id, contrast_label, fold_label]
@@ -337,17 +347,22 @@ def aggregate_overall_performance(df, group_name):
     means_df[label_label] = rename_suit_atlas_diedrichsen_groups_plot_labels(
         group_name.value
     )
-    extended_group_df = pd.concat([df, means_df]).reset_index(drop=True)
 
-    return extended_group_df
+    if aggregate_only:
+        return means_df
+    else:
+        return pd.concat([df, means_df]).reset_index(drop=True)
 
 
 def filter_infs(dfs, measure, contrast_names):
 
-    # For Dice coefficients or volume similarity, we cannot have NaN or inf
-    # values; for the rest, we need to filter inf values (NaN values are
-    # filtered by default by pandas)
-    if measure in [Measure.DICE.value, Measure.VOLUME_SIMILARITY.value]:
+    # For some measures, we cannot have NaN or inf values; for the rest, we need
+    # to filter inf values (NaN values are filtered by default by pandas)
+    if measure in [
+        Measure.DICE.value,
+        Measure.VOLUME_SIMILARITY.value,
+        Measure.LABEL_DETECTION_RATE.value,
+    ]:
         assert not any([df.isna().any().any() for df in dfs])
         assert not any(
             [
@@ -430,6 +445,11 @@ def _build_arg_parser():
         help="Measurement filenames (*.tsv)",
         type=Path,
         nargs="+",
+    )
+    parser.add_argument(
+        "--aggregate_only",
+        help="Plot only aggregate data (e.g. dentate, interposed, fastigial, etc.)",
+        action="store_true",
     )
     return parser
 
@@ -558,6 +578,7 @@ def main():
     # Generate plots: one containing each labels as a separate entity, then
     # averaging the performances across labels in each group
     group_names = [
+        SuitAtlasDiedrichsenGroups.ALL,
         SuitAtlasDiedrichsenGroups.DCN,
         SuitAtlasDiedrichsenGroups.DENTATE,
         SuitAtlasDiedrichsenGroups.INTERPOSED,
@@ -582,7 +603,9 @@ def main():
     for group_name in group_names:
 
         group_df = filter_labels(df, group_name, label_mapping)
-        extended_group_df = aggregate_overall_performance(group_df, group_name)
+        extended_group_df = aggregate_overall_performance(
+            group_df, group_name, args.aggregate_only
+        )
 
         _stat_signif_pairs = None
         _pvalue_labels = None
