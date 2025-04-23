@@ -344,10 +344,13 @@ def aggregate_overall_performance(df, group_name):
 
 def filter_infs(dfs, measure, contrast_names):
 
-    # For Dice coefficients or volume similarity, we cannot have NaN or inf
-    # values; for the rest, we need to filter inf values (NaN values are
-    # filtered by default by pandas)
-    if measure in [Measure.DICE.value, Measure.VOLUME_SIMILARITY.value]:
+    # For some measures, we cannot have NaN or inf values; for the rest, we need
+    # to filter inf values (NaN values are filtered by default by pandas)
+    if measure in [
+        Measure.DICE.value,
+        Measure.VOLUME_SIMILARITY.value,
+        Measure.LABEL_DETECTION_RATE.value,
+    ]:
         assert not any([df.isna().any().any() for df in dfs])
         assert not any(
             [
