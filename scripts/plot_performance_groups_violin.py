@@ -126,7 +126,17 @@ def plot_grouped_violin(
     separate_legend_from_fig=False,
     bottom_legend=False,
     use_scatter_legend=False,
+    large_labels=True,
 ):
+
+    if large_labels:
+        plt.rcParams.update(
+            {
+                "font.size": 16,
+                "legend.fontsize": 12,
+                "legend.markerscale": 1.4,  # Makes legend markers x times bigger than plot markers
+            }
+        )
 
     # Create the figure and axis objects
     fig, ax = plt.subplots(figsize=(14, 7))
