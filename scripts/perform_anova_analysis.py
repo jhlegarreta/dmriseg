@@ -84,6 +84,13 @@ def main():
         for fname in fnames
     ]
 
+    # Filter subjects if they do not exist across all dfs
+    dfs_filtered = filter_nonmutual_participants(dfs)
+
+    columns_of_interest = None
+    if args.labels:
+        columns_of_interest = list(map(str, args.labels))
+
     (
         df_anova,
         depvar_label,
@@ -93,7 +100,7 @@ def main():
         dfs,
         measure,
         args.contrast_names,
-        columns_of_interest=list(map(str, args.labels)),
+        columns_of_interest=columns_of_interest,
     )
 
     # Conduct the repeated measures ANOVA
