@@ -82,7 +82,7 @@ for _contrast_group in "${in_contrast_groups[@]}"; do
       --in_performance_dirnames "${in_performance_dirnames[@]}" \
       --contrast_names "${_contrast_group_items[@]}" \
       --measure_name ${_measure_name} \
-      --out_fname ${out_dirname}/${_measure_name}_rm_anova.tsv
+      --out_fname ${out_dirname}/${_contrast_group_items[0]}_subsampling_${_measure_name}_rm_anova.tsv
 
   done
 
