@@ -15,7 +15,10 @@ import pingouin as pg
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import build_suffix, participant_label_id, underscore
 from dmriseg.stats.utils import StatisticalTest
-from dmriseg.utils.stat_preparation_utils import prepare_data_for_pairwise_test
+from dmriseg.utils.stat_preparation_utils import (
+    filter_nonmutual_participants,
+    prepare_data_for_pairwise_test,
+)
 
 
 def _build_arg_parser():
@@ -85,16 +88,23 @@ def main():
         for fname in fnames
     ]
 
+    # Filter subjects if they do not exist across all dfs
+    dfs_filtered = filter_nonmutual_participants(dfs)
+
     # Assert we have the same participants for all dfs (contrasts)
     # Compute the difference with respect to the first
     assert not any(
         [
-            set(dfs[0].index.values.tolist()).difference(
+            set(dfs_filtered[0].index.values.tolist()).difference(
                 set(df.index.values.tolist())
             )
-            for df in dfs[1:]
+            for df in dfs_filtered[1:]
         ]
     )
+
+    columns_of_interest = None
+    if args.labels:
+        columns_of_interest = list(map(str, args.labels))
 
     (
         data_df,
@@ -102,10 +112,10 @@ def main():
         _subject_label,
         within_label,
     ) = prepare_data_for_pairwise_test(
-        dfs,
+        dfs_filtered,
         args.measure_name,
         args.in_contrast_names,
-        columns_of_interest=list(map(str, args.labels)),
+        columns_of_interest=columns_of_interest,
     )
 
     # When parametric=True, the below call is equivalent to
