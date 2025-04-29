@@ -15,7 +15,10 @@ from statsmodels.stats.anova import AnovaRM
 from dmriseg.analysis.measures import Measure
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import build_suffix, participant_label_id
-from dmriseg.utils.stat_preparation_utils import prepare_data_for_anova
+from dmriseg.utils.stat_preparation_utils import (
+    filter_nonmutual_participants,
+    prepare_data_for_anova,
+)
 
 
 def _build_arg_parser():
@@ -84,16 +87,23 @@ def main():
         for fname in fnames
     ]
 
+    # Filter subjects if they do not exist across all dfs
+    dfs_filtered = filter_nonmutual_participants(dfs)
+
+    columns_of_interest = None
+    if args.labels:
+        columns_of_interest = list(map(str, args.labels))
+
     (
         df_anova,
         depvar_label,
         _subject_label,
         within_label,
     ) = prepare_data_for_anova(
-        dfs,
+        dfs_filtered,
         measure,
         args.contrast_names,
-        columns_of_interest=list(map(str, args.labels)),
+        columns_of_interest=columns_of_interest,
     )
 
     # Conduct the repeated measures ANOVA

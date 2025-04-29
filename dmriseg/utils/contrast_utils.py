@@ -19,6 +19,12 @@ class ContrastNames(enum.Enum):
     AK = "ak"
     MK = "mk"
     RK = "rk"
+    DWIsub20 = "dwisub20"
+    DWIsub30 = "dwisub30"
+    DWIsub60 = "dwisub60"
+    DWI1ksub20 = "dwi1ksub20"
+    DWI1ksub30 = "dwi1ksub30"
+    DWI1ksub60 = "dwi1ksub60"
 
 
 def get_contrast_names_lut():
@@ -39,6 +45,12 @@ def get_contrast_names_lut():
             ContrastNames.AK.value: 13,
             ContrastNames.MK.value: 14,
             ContrastNames.RK.value: 15,
+            ContrastNames.DWIsub20.value: 16,
+            ContrastNames.DWIsub30.value: 17,
+            ContrastNames.DWIsub60.value: 18,
+            ContrastNames.DWI1ksub20.value: 19,
+            ContrastNames.DWI1ksub30.value: 20,
+            ContrastNames.DWI1ksub60.value: 21,
         }
     )
 

@@ -327,3 +327,15 @@ def describe_measurements(contrast_names):
     )
     df.index.name = arg_label
     return df
+
+
+def filter_nonmutual_participants(dfs):
+
+    # Find the intersection of IDs across all dataframes
+    common_ids = set(dfs[0].index)
+    for df in dfs[1:]:
+        common_ids &= set(df.index)
+
+    # Filter each dataframe to keep only the common IDs
+    common_ids = list(common_ids)
+    return [df.loc[common_ids] for df in dfs]
