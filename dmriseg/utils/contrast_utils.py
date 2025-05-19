@@ -88,6 +88,18 @@ def get_contrast_from_dir_base(dirname):
         return ContrastNames.MK.value
     elif dirname == "dmri_hcp_rk":
         return ContrastNames.RK.value
+    elif dirname == "dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs20":
+        return ContrastNames.DWIsub20.value
+    elif dirname == "dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs30":
+        return ContrastNames.DWIsub30.value
+    elif dirname == "dmri_hcp_sphm_b1000-2000-3000_subsampled_dirs60":
+        return ContrastNames.DWIsub60.value
+    elif dirname == "dmri_hcp_sphm_b1000_subsampled_dirs20":
+        return ContrastNames.DWI1ksub20.value
+    elif dirname == "dmri_hcp_sphm_b1000_subsampled_dirs30":
+        return ContrastNames.DWI1ksub30.value
+    elif dirname == "dmri_hcp_sphm_b1000_subsampled_dirs60":
+        return ContrastNames.DWI1ksub60.value
     else:
         raise NotImplementedError(f"Dirname not recognized: {dirname}")
 
@@ -160,5 +172,17 @@ def rename_contrasts_plot_labels(contrast):
         return "MK"
     elif contrast == ContrastNames.RK.value:
         return "RK"
+    elif contrast == ContrastNames.DWIsub20.value:
+        return "SMsub20"
+    elif contrast == ContrastNames.DWIsub30.value:
+        return "SMsub30"
+    elif contrast == ContrastNames.DWIsub60.value:
+        return "SMsub60"
+    elif contrast == ContrastNames.DWI1ksub20.value:
+        return "SM1ksub20"
+    elif contrast == ContrastNames.DWI1ksub30.value:
+        return "SM1ksub30"
+    elif contrast == ContrastNames.DWI1ksub60.value:
+        return "SM1ksub60"
     else:
         raise NotImplementedError(f"Contrast not recognized: {contrast}")
