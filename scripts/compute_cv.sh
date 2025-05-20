@@ -90,7 +90,7 @@ in_participants_fold_dirname="/mnt/data/connectome/participant_folds/"
 in_dwi_scalarmap_dirname="/mnt/data/connectome/preprocess_dwi_minimal/"
 in_pred_labelmap_root_dirname="/mnt/data/cerebellum_parc/experiments_minimal_pipeline/"
 in_labels_fname="/mnt/data/lut/suit_diedrichsen_lut0255_nuclei_colored.tsv"
-out_root_dirname="/mnt/data/cerebellum_parc/early_experiments/coefficient_variation"
+out_root_dirname="/mnt/data/cerebellum_parc/experiments_minimal_pipeline/coefficient_variation"
 
 result=$(get_io_labels_from_contrast "${contrast}")
 status=$?
@@ -108,6 +108,8 @@ out_folder_label=${result_array[2]}
 
 dti_metrics=("fa" "md")
 out_dirname=${out_root_dirname}/${out_folder_label}
+
+mkdir ${out_dirname}
 
 echo "Computing coefficient of variation..."
 
