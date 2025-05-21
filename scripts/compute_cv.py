@@ -13,11 +13,16 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 
-from dmriseg.data.lut.utils import class_id_label
+from dmriseg.data.lut.utils import (
+    SuitAtlasDiedrichsenGroups,
+    class_id_label,
+    get_diedrichsen_group_labels,
+)
 from dmriseg.io.file_extensions import DelimitedValuesFileExtension
 from dmriseg.io.utils import (
     build_suffix,
     fold_label,
+    group_fname_label,
     participant_label_id,
     stats_fname_label,
     underscore,
@@ -299,10 +304,36 @@ def main():
 
     stats_cv_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
 
-    # Compute grand stats (across participants and labels)
-    grandstats_mean_df = df_mean.stack().describe()
-    grandstats_std_df = df_std.stack().describe()
-    grandstats_cv_df = df_cv.stack().describe()
+    # Compute group stats (across label groups)
+    group_names = [
+        SuitAtlasDiedrichsenGroups.ALL,
+        SuitAtlasDiedrichsenGroups.DCN,
+        SuitAtlasDiedrichsenGroups.DENTATE,
+        SuitAtlasDiedrichsenGroups.INTERPOSED,
+        SuitAtlasDiedrichsenGroups.FASTIGIAL,
+        SuitAtlasDiedrichsenGroups.VERMIS,
+        SuitAtlasDiedrichsenGroups.LOBULES,
+        SuitAtlasDiedrichsenGroups.CRUS,
+    ]
+
+    group_mean_df = pd.DataFrame()
+    group_std_df = pd.DataFrame()
+    group_cv_df = pd.DataFrame()
+
+    for group_name in group_names:
+
+        labels = get_diedrichsen_group_labels(group_name.value)
+        group_mean_series = df_mean[labels].stack().describe()
+        group_std_series = df_std[labels].stack().describe()
+        group_cv_series = df_cv[labels].stack().describe()
+
+        group_mean_series.rename(group_name.value, inplace=True)
+        group_std_series.rename(group_name.value, inplace=True)
+        group_cv_series.rename(group_name.value, inplace=True)
+
+        group_mean_df = pd.concat([group_mean_df, group_mean_series], axis=1)
+        group_std_df = pd.concat([group_std_df, group_std_series], axis=1)
+        group_cv_df = pd.concat([group_cv_df, group_cv_series], axis=1)
 
     _basename = (
         args.dti_metric
@@ -310,10 +341,12 @@ def main():
         + mean_label
         + underscore
         + stats_fname_label
+        + underscore
+        + group_fname_label
     )
     fname = Path(args.out_dirname).joinpath(_basename + build_suffix(ext))
 
-    grandstats_mean_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
+    group_mean_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
 
     _basename = (
         args.dti_metric
@@ -321,10 +354,12 @@ def main():
         + std_label
         + underscore
         + stats_fname_label
+        + underscore
+        + group_fname_label
     )
     fname = Path(args.out_dirname).joinpath(_basename + build_suffix(ext))
 
-    grandstats_std_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
+    group_std_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
 
     _basename = (
         args.dti_metric
@@ -332,10 +367,12 @@ def main():
         + cv_label
         + underscore
         + stats_fname_label
+        + underscore
+        + group_fname_label
     )
     fname = Path(args.out_dirname).joinpath(_basename + build_suffix(ext))
 
-    grandstats_cv_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
+    group_cv_df.to_csv(fname, index=index, sep=sep, na_rep=na_rep)
 
 
 if __name__ == "__main__":
