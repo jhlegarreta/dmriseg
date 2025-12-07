@@ -1,8 +1,8 @@
 [build-system]
 requires = [
-    "setuptools >= 66",
+    "setuptools >= 68.0.0",
     "wheel",
-    "setuptools_scm >= 6.4",
+    "setuptools_scm >= 8.1.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -21,6 +21,7 @@ dependencies = [
     "dipy",
     "fury",
     "h5py",
+    "importlib_resources",
     "matplotlib",
     "monai",
     "nibabel",
@@ -50,7 +51,7 @@ requires-python = ">=3.10"
 
 [project.optional-dependencies]
 test = [
-    "pytest >= 5.3",
+    "pytest >= 7.3.2",
     "pytest-cov",
     "pytest-pep8",
     "pytest-xdist",
