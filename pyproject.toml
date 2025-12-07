@@ -34,7 +34,7 @@ dependencies = [
     "seg-metrics",
     "statannotations",
     "statsmodels",
-    "SUITPy",
+    "SUITPy @ git+https://github.com/DiedrichsenLab/SUITPy.git@728f7d9bd2d1d078800768311fb144151c2c8647",
     "torch",
     "tqdm",
 ]
@@ -45,7 +45,7 @@ maintainers = [
 ]
 name = "dmriseg"
 version = "0.0.1"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 
 
 [project.optional-dependencies]

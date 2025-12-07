@@ -9,13 +9,7 @@ from urllib.parse import urljoin
 import importlib_resources
 import pandas as pd
 import requests
-from SUITPy import (
-    fetch_buckner_2011,
-    fetch_diedrichsen_2009,
-    fetch_ji_2019,
-    fetch_king_2019,
-    fetch_xue_2021,
-)
+from SUITPy.atlas import fetch_atlas
 from SUITPy.utils import _fetch_files, _get_dataset_dir
 
 from dmriseg._utils import fill_doc
@@ -220,15 +214,15 @@ def fetch_suit_atlas(atlas, **kwargs):
         _data = kwargs.pop(data_arg, _data)
 
     if atlas == Atlas.BUCKNER:
-        atlas_data = fetch_buckner_2011(**kwargs)
+        atlas_data = fetch_atlas("Buckner_2011", **kwargs)
     elif atlas == Atlas.DIEDRICHSEN:
-        atlas_data = fetch_diedrichsen_2009(**kwargs)
+        atlas_data = fetch_atlas("Diedrichsen_2009", **kwargs)
     elif atlas == Atlas.JI:
-        atlas_data = fetch_ji_2019(**kwargs)
+        atlas_data = fetch_atlas("Ji_2019", **kwargs)
     elif atlas == Atlas.KING:
-        atlas_data = fetch_king_2019(data=_data, **kwargs)
+        atlas_data = fetch_atlas("King_2019", data=_data, **kwargs)
     elif atlas == Atlas.XUE:
-        atlas_data = fetch_xue_2021(**kwargs)
+        atlas_data = fetch_atlas("Xue_2021", **kwargs)
     else:
         raise ValueError(f"Unknown atlas name: {atlas}.")
 
@@ -285,7 +279,7 @@ def fetch_suit_cmap_lut_files(
     # name matching the URL
     dataset_name = atlas_dirname.value.lower()
     data_dir = _get_dataset_dir(
-        dataset_name, data_dir=data_dir, verbose=verbose
+        dataset_name, atlas_dir=data_dir, verbose=verbose
     )
 
     # Get local fullpath(s) of downloaded file(s)
