@@ -8,7 +8,7 @@ from dmriseg.models.unet import UNet
 
 def test_unet():
     # A full forward pass
-    x = torch.randn(1, 32)
+    x = torch.randn(1, 1, 32, 32)
     model = UNet()
     y = model(x)
 
